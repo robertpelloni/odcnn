@@ -11,8 +11,8 @@ def detection(don_inference, ka_inference, song):
     don_inference = smooth(don_inference, 5)
     ka_inference = smooth(ka_inference, 5)
 
-    don_timestamp = (peak_pick(don_inference, 1, 2, 4, 5, 0.05, 3)+7)  # 実際は7フレーム目のところの音
-    ka_timestamp = (peak_pick(ka_inference, 1, 2, 4, 5, 0.05, 3)+7)
+    don_timestamp = (peak_pick(don_inference, pre_max=1, post_max=2, pre_avg=4, post_avg=5, delta=0.05, wait=3)+7)  # 実際は7フレーム目のところの音
+    ka_timestamp = (peak_pick(ka_inference, pre_max=1, post_max=2, pre_avg=4, post_avg=5, delta=0.05, wait=3)+7)
     
     print(don_timestamp)
     print(ka_timestamp)

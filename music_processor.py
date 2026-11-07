@@ -4,6 +4,7 @@ import numpy as np
 import os
 from glob import glob
 from scipy import signal
+import scipy.signal.windows as windows
 from scipy.fftpack import fft
 from librosa.filters import mel
 from librosa.display import specshow
@@ -189,7 +190,6 @@ def make_frame(data, nhop, nfft):
     return np.array([framedata[i*nhop:i*nhop+nfft] for i in range(length//nhop)])  
 
 
-@jit
 def fft_and_melscale(song, nhop=512, nffts=[1024, 2048, 4096], mel_nband=80, mel_freqlo=27.5, mel_freqhi=16000.0, include_zero_cross=False):
     """
     fft and melscale method.
@@ -202,8 +202,11 @@ def fft_and_melscale(song, nhop=512, nffts=[1024, 2048, 4096], mel_nband=80, mel
     for nfft in nffts:
         
         feats = []
-        window = signal.blackmanharris(nfft)
-        filt = mel(song.samplerate, nfft, mel_nband, mel_freqlo, mel_freqhi)
+        try:
+            window = windows.blackmanharris(nfft)
+        except AttributeError:
+            window = signal.blackmanharris(nfft)
+        filt = mel(sr=song.samplerate, n_fft=nfft, n_mels=mel_nband, fmin=mel_freqlo, fmax=mel_freqhi)
         
         # get normal frame
         frame = make_frame(song.data, nhop, nfft)
@@ -224,11 +227,10 @@ def fft_and_melscale(song, nhop=512, nffts=[1024, 2048, 4096], mel_nband=80, mel
     return np.array(feat_channels)
 
 
-@jit(parallel=True)
 def multi_fft_and_melscale(songs, nhop=512, nffts=[1024, 2048, 4096], mel_nband=80, mel_freqlo=27.5, mel_freqhi=16000.0, include_zero_cross=False):
     
-    for i in prange(len(songs)):
-        songs[i].feats = fft_and_melscale(songs[i], nhop, nffts, mel_nband, mel_freqlo, mel_freqhi)
+    for i in range(len(songs)):
+        songs[i].feats = fft_and_melscale(songs[i], nhop, nffts, mel_nband, mel_freqlo, mel_freqhi, include_zero_cross=include_zero_cross)
 
 
 def milden(data):

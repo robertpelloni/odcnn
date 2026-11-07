@@ -39,7 +39,7 @@ class convNet(nn.Module):
         x = F.dropout(F.relu(self.fc1(x)), training=istraining)
         x = F.dropout(F.relu(self.fc2(x)), training=istraining)
 
-        return F.sigmoid(self.fc3(x))
+        return torch.sigmoid(self.fc3(x))
 
 
     def train_data_builder(self, feats, answer, major_note_index, samplerate, soundlen=15, minibatch=1, split=0.2):
