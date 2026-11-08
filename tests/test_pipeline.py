@@ -213,5 +213,21 @@ class TestODCNNPipeline(unittest.TestCase):
         self.assertIn("notes", data)
         self.assertIsInstance(data["notes"], list)
 
+    def test_spectrogram_data_endpoint(self):
+        """Test /api/spectrogram_data returns normalized 2D mel-frequency spectral matrix."""
+        response = self.client.get("/api/spectrogram_data?n_mels=32")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("source", data)
+        self.assertIn("duration", data)
+        self.assertGreater(data["duration"], 0)
+        self.assertEqual(data["n_mels"], 32)
+        self.assertIn("matrix", data)
+        self.assertEqual(len(data["matrix"]), 32)
+        self.assertGreater(len(data["matrix"][0]), 0)
+        # Verify values are in normalized range [0.0, 1.0]
+        val = data["matrix"][0][0]
+        self.assertTrue(0.0 <= val <= 1.0)
+
 if __name__ == "__main__":
     unittest.main()

@@ -14,8 +14,11 @@
   - Performs peak picking using Librosa's `peak_pick` algorithm.
   - Synthesizes detected onsets with original don/ka sample audio into `inferred_music.wav`.
   - Exports detected onsets into standard Taikosanjiro `.tja` chart format.
-- `dashboard.py`: Unified single-page FastAPI web application providing end-to-end access to preprocessing, training, inference, peak-picking, chart generation, and server management.
+- `dashboard.py`: Unified single-page FastAPI web application providing end-to-end access to preprocessing, training, inference, peak-picking, chart generation, live microphone streaming, interactive waveform scrubber, and Mel spectrogram heatmap visualizer.
 - `tray_app.py`: System tray companion for desktop server lifecycle control.
+- `chart_exporters.py`: Multi-format exporters for osu! Taiko, StepMania, and Beat Saber.
+- `export_onnx.py`: ONNX graph exporter and ONNX Runtime inference engine.
+- `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
 
 ## Key Discovered Constraints
 1. Modern Librosa (>=0.10.0) mandates keyword-only arguments for `librosa.util.peak_pick` and `librosa.filters.mel`.

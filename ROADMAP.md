@@ -39,7 +39,13 @@
 - [x] Interactive audio scrubbing and timeline synchronization with studio audio playback element.
 - [x] Waveform endpoint unit tests and Playwright interaction verification.
 
-### Milestone 8: Advanced Architectures & Embedded Integration (Future)
+### Milestone 8: Mel-Frequency Spectrogram Heatmap Visualizer (v1.8.0 - Completed)
+- [x] Mel-frequency spectrogram data generation API (`/api/spectrogram_data`) with 48-mel frequency bins and downsampled frame matrix.
+- [x] High-performance HTML5 Canvas spectral heatmap visualizer with dynamic Magma/Inferno color ramp.
+- [x] Dual synchronized timeline scrubbing across waveform, spectrogram, and audio playback.
+- [x] Automated unit testing and Playwright browser visual verification.
+
+### Milestone 9: Advanced Architectures & Embedded Integration (Future)
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
 - [ ] Conformer / CRNN architectures for joint rhythm & pitch contour estimation.

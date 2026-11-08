@@ -480,6 +480,58 @@ def get_audio_waveform(source: str = "auto"):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@app.get("/api/spectrogram_data")
+def get_spectrogram_data(source: str = "auto", n_mels: int = 48):
+    """
+    Generate normalized Mel-frequency spectrogram matrix data for spectral heatmap visualization.
+    """
+    try:
+        custom_p = DATA_DIR / "custom_audio.wav"
+        if source == "custom" and custom_p.exists() and custom_p.stat().st_size > 1000:
+            target_path = custom_p
+        elif source == "sample" or not custom_p.exists() or custom_p.stat().st_size <= 1000:
+            target_path = DATA_DIR / "test" / "test_music.ogg"
+        else:
+            target_path = custom_p
+
+        if not target_path.exists():
+            return JSONResponse({"error": "Audio source file not found"}, status_code=404)
+
+        y, sr = librosa.load(str(target_path), sr=22050)
+        duration = float(len(y) / sr)
+        # Compute mel spectrogram downsampled for fast transfer and rendering
+        # Hop length of ~2205 yields 10 frames per second
+        hop_length = max(512, int(sr * 0.1))
+        mel = librosa.feature.melspectrogram(
+            y=y,
+            sr=sr,
+            n_fft=1024,
+            hop_length=hop_length,
+            n_mels=n_mels,
+            fmin=20,
+            fmax=sr // 2
+        )
+        mel_db = librosa.power_to_db(mel, ref=np.max)
+        # Normalize to 0.0 - 1.0
+        min_db = float(mel_db.min())
+        max_db = float(mel_db.max())
+        norm_mel = (mel_db - min_db) / (max_db - min_db + 1e-6)
+        # Round values to 2 decimals to minimize JSON payload
+        norm_mel = np.round(norm_mel, 2).tolist()
+
+        return JSONResponse({
+            "source": target_path.name,
+            "duration": round(duration, 3),
+            "sample_rate": sr,
+            "n_mels": n_mels,
+            "frames": len(norm_mel[0]) if norm_mel else 0,
+            "matrix": norm_mel
+        })
+    except Exception as e:
+        log_event(f"Error computing spectrogram: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 @app.post("/api/upload_audio")
 async def upload_audio(file: UploadFile = File(...)):
     """Upload custom audio track for onset processing."""
@@ -1252,6 +1304,28 @@ def index_page():
             💡 Click anywhere inside the waveform canvas to scrub audio playback time. Hover to view note timestamps.
           </p>
         </div>
+
+        <!-- Real-Time Frequency Heatmap Visualizer -->
+        <div style="position: relative; width: 100%; margin-top: 1.5rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.85rem;">
+            <div>
+              <span style="font-weight: 600;">🔥 Mel-Frequency Spectral Heatmap</span>
+              <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 8px;">(48 Mel Bins • 20Hz - 11kHz)</span>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-quit" onclick="loadSpectrogramData()" style="padding: 2px 8px; font-size: 0.75rem;">↻ Reload Heatmap</button>
+              <span class="status-pill pill-ready" id="spectroStatusBadge" style="font-size: 0.7rem;">Spectrogram Ready</span>
+            </div>
+          </div>
+
+          <div style="position: relative; background: #000; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; height: 120px; cursor: pointer;" id="spectrogramContainer" onclick="handleWaveformClick(event)">
+            <canvas id="spectrogramCanvas" width="1200" height="120" style="width: 100%; height: 100%; display: block;"></canvas>
+            <div id="spectroPlayheadBar" style="position: absolute; top: 0; left: 0%; width: 2px; height: 100%; background: #ffd700; pointer-events: none; transition: left 0.05s linear; box-shadow: 0 0 8px #ffd700;"></div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
+            Spectral power distribution: Deep blue (low energy) → Violet → Amber → Bright White (transient onsets).
+          </p>
+        </div>
       </div>
 
       <!-- Section 7: Real-Time Engine Logs -->
@@ -1538,8 +1612,9 @@ def index_page():
       }
     }
 
-    // --- Interactive Waveform Visualizer & Scrubber ---
+    // --- Interactive Waveform & Spectrogram Visualizers ---
     let waveformCache = null;
+    let spectrogramCache = null;
 
     async function loadWaveformData() {
       const badge = document.getElementById('waveStatusBadge');
@@ -1560,6 +1635,75 @@ def index_page():
         console.error('Waveform error:', err);
         badge.className = 'status-pill pill-missing';
         badge.textContent = 'Error Loading';
+      }
+    }
+
+    async function loadSpectrogramData() {
+      const badge = document.getElementById('spectroStatusBadge');
+      badge.textContent = 'Loading...';
+      try {
+        const res = await fetch('/api/spectrogram_data');
+        if (!res.ok) throw new Error('Failed to load spectrogram data');
+        spectrogramCache = await res.json();
+        badge.className = 'status-pill pill-ready';
+        badge.textContent = 'Spectrogram Ready';
+        renderSpectrogramCanvas();
+      } catch (err) {
+        console.error('Spectrogram error:', err);
+        badge.className = 'status-pill pill-missing';
+        badge.textContent = 'Error Loading';
+      }
+    }
+
+    function renderSpectrogramCanvas() {
+      if (!spectrogramCache || !spectrogramCache.matrix) return;
+      const canvas = document.getElementById('spectrogramCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+
+      const matrix = spectrogramCache.matrix; // [n_mels, frames]
+      const nMels = matrix.length;
+      const frames = matrix[0] ? matrix[0].length : 0;
+      if (nMels === 0 || frames === 0) return;
+
+      const cellW = width / frames;
+      const cellH = height / nMels;
+
+      for (let m = 0; m < nMels; m++) {
+        // Mel bins: lowest freq at bottom, highest at top
+        const y = height - (m + 1) * cellH;
+        for (let f = 0; f < frames; f++) {
+          const val = matrix[m][f]; // 0.0 to 1.0
+          const x = f * cellW;
+
+          // Magma/Inferno heat map: dark purple -> magenta -> orange -> yellow -> white
+          let r = 0, g = 0, b = 0;
+          if (val < 0.25) {
+            r = Math.floor(val * 4 * 80);
+            g = 0;
+            b = Math.floor(val * 4 * 160 + 20);
+          } else if (val < 0.5) {
+            const v = (val - 0.25) * 4;
+            r = Math.floor(80 + v * 120);
+            g = Math.floor(v * 40);
+            b = Math.floor(180 - v * 80);
+          } else if (val < 0.75) {
+            const v = (val - 0.5) * 4;
+            r = Math.floor(200 + v * 55);
+            g = Math.floor(40 + v * 150);
+            b = 20;
+          } else {
+            const v = (val - 0.75) * 4;
+            r = 255;
+            g = Math.floor(190 + v * 65);
+            b = Math.floor(20 + v * 235);
+          }
+
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillRect(x, y, Math.ceil(cellW), Math.ceil(cellH));
+        }
       }
     }
 
@@ -1622,15 +1766,18 @@ def index_page():
 
     function handleWaveformClick(event) {
       if (!waveformCache || !waveformCache.duration) return;
-      const container = document.getElementById('waveformContainer');
+      const container = event.currentTarget || document.getElementById('waveformContainer');
       const rect = container.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
       const ratio = Math.max(0, Math.min(1, clickX / rect.width));
       const targetTime = ratio * waveformCache.duration;
 
-      // Update playhead position visually
+      // Update playhead positions visually
+      const pct = (ratio * 100) + '%';
       const playhead = document.getElementById('playheadBar');
-      playhead.style.left = (ratio * 100) + '%';
+      if (playhead) playhead.style.left = pct;
+      const spectroPlayhead = document.getElementById('spectroPlayheadBar');
+      if (spectroPlayhead) spectroPlayhead.style.left = pct;
 
       // Update time indicator
       document.getElementById('waveScrubberTime').textContent =
@@ -1646,13 +1793,16 @@ def index_page():
     // Sync playhead with audio player playback
     document.addEventListener('DOMContentLoaded', () => {
       loadWaveformData();
+      loadSpectrogramData();
       const player = document.getElementById('synthesizedAudioPlayer');
       if (player) {
         player.addEventListener('timeupdate', () => {
           if (!waveformCache || !waveformCache.duration) return;
-          const pct = (player.currentTime / waveformCache.duration) * 100;
+          const pct = `${Math.min(100, Math.max(0, (player.currentTime / waveformCache.duration) * 100))}%`;
           const playhead = document.getElementById('playheadBar');
-          if (playhead) playhead.style.left = `${Math.min(100, Math.max(0, pct))}%`;
+          if (playhead) playhead.style.left = pct;
+          const spectroPlayhead = document.getElementById('spectroPlayheadBar');
+          if (spectroPlayhead) spectroPlayhead.style.left = pct;
           const timeText = document.getElementById('waveScrubberTime');
           if (timeText) {
             timeText.textContent = `Playback: ${player.currentTime.toFixed(2)}s / ${waveformCache.duration.toFixed(2)}s`;

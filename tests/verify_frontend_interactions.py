@@ -29,11 +29,27 @@ def run():
         note_count = page.locator("#waveNoteCount").inner_text()
         print(f"Loaded note count: {note_count}")
 
+        # Verify spectrogram container and canvas exist
+        spectro_container = page.locator("#spectrogramContainer")
+        assert spectro_container.is_visible(), "Spectrogram container should be visible"
+
+        spectro_canvas = page.locator("#spectrogramCanvas")
+        assert spectro_canvas.is_visible(), "Spectrogram canvas should be visible"
+
+        # Wait for spectrogram ready status
+        page.wait_for_selector("#spectroStatusBadge:has-text('Spectrogram Ready')", timeout=10000)
+
         # Click inside waveform container to test scrubber click handling
         box = waveform_container.bounding_box()
         assert box is not None
         # Click at 40% across
         page.mouse.click(box["x"] + box["width"] * 0.4, box["y"] + box["height"] * 0.5)
+        time.sleep(1)
+
+        # Also click inside spectrogram container to test spectral scrub
+        sbox = spectro_container.bounding_box()
+        assert sbox is not None
+        page.mouse.click(sbox["x"] + sbox["width"] * 0.6, sbox["y"] + sbox["height"] * 0.5)
         time.sleep(1)
 
         scrubber_text = page.locator("#waveScrubberTime").inner_text()

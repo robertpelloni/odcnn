@@ -19,5 +19,5 @@
 - [x] Integrate live stream simulation & audio upload interactive UI card into Studio dashboard.
 - [x] Add real-time microphone/line-in PortAudio / WebAudio stream input for live onset inference via `/ws/stream`.
 - [x] Add interactive waveform canvas scrubbing with visual onset markers.
-- [ ] Add spectrogram frequency heatmap canvas visualizer.
+- [x] Add spectrogram frequency heatmap canvas visualizer.
 - [ ] Add BPM tap tempo & beat grid snapping tool.

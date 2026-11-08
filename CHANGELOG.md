@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.8.0] - 2025-11-08
+### Added
+- **Mel-Frequency Spectrogram Heatmap Visualizer:**
+  - Added `/api/spectrogram_data` endpoint in `dashboard.py` generating downsampled 48-mel frequency spectral energy matrix (20Hz - 11kHz, normalized 0.0 - 1.0) using cached STFT.
+  - Implemented an HTML5 Canvas spectral heatmap visualizer in `dashboard.py` using a dynamic Magma/Inferno color ramp (dark purple -> magenta -> orange -> yellow -> white) with frequency axis tick markers and frequency band division indicator lines.
+  - Synchronized spectrogram timeline scrubbing with the waveform canvas and HTML5 audio player.
+- **Spectrogram Unit Testing:**
+  - Added `test_spectrogram_data_endpoint` in `tests/test_pipeline.py` verifying downsampled mel matrix shape, frequency ranges, normalization, and note timestamp metadata.
+- **Automated Frontend Verification:**
+  - Updated Playwright test `tests/verify_frontend_interactions.py` checking `#spectrogramContainer`, `#spectrogramCanvas`, `#spectroStatusBadge`, and two-way scrubbing interaction.
+
 ## [1.7.0] - 2025-11-08
 ### Added
 - **Interactive Audio Waveform Visualizer & Rhythm Onset Scrubber:**
