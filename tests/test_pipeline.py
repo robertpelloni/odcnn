@@ -131,5 +131,54 @@ class TestODCNNPipeline(unittest.TestCase):
             self.assertEqual(len(res), 15)
             self.assertTrue(np.all(res >= 0.0) and np.all(res <= 1.0))
 
+
+
+    def test_audio_streamer_and_detector(self):
+        """Test real-time streaming chunk generator and onset detector."""
+        import audio_stream
+        # Generate 1 second of synthetic audio containing a loud click at 0.5s
+        sr = 44100
+        t = np.linspace(0, 1.0, sr, endpoint=False)
+        signal = 0.01 * np.sin(2 * np.pi * 440 * t)
+        # Add a drum hit spike around index 22050
+        signal[22000:22200] += 0.8 * np.sin(2 * np.pi * 150 * np.linspace(0, 0.005, 200))
+
+        streamer = audio_stream.AudioChunkStreamer(signal, sample_rate=sr, chunk_size=512)
+        detector = audio_stream.StreamingOnsetDetector(sample_rate=sr, energy_threshold=0.03)
+
+        detected = []
+        for c_idx, t_sec, chunk in streamer.stream_chunks():
+            onsets = detector.push_chunk(chunk)
+            if onsets:
+                detected.extend(onsets)
+
+        self.assertGreater(len(detected), 0)
+        self.assertIn("timestamp", detected[0])
+        self.assertIn("type", detected[0])
+        self.assertIn(detected[0]["type"], ["don", "ka"])
+
+    def test_custom_audio_upload_endpoint(self):
+        """Test /api/upload_audio endpoint."""
+        import io
+        fake_wav = io.BytesIO(b"RIFF\x24\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00D\xac\x00\x00\x88X\x01\x00\x02\x00\x10\x00data\x00\x00\x00\x00")
+        response = self.client.post(
+            "/api/upload_audio",
+            files={"file": ("custom.wav", fake_wav, "audio/wav")}
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["filename"], "custom.wav")
+
+    def test_simulate_stream_endpoint(self):
+        """Test /api/action/simulate_stream endpoint starts background worker without errors."""
+        response = self.client.post(
+            "/api/action/simulate_stream",
+            data={"energy_threshold": "0.05", "chunk_size": "2048", "audio_source": "sample"}
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("status", data)
+
 if __name__ == "__main__":
     unittest.main()

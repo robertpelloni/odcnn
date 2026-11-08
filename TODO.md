@@ -14,4 +14,7 @@
 - [x] Implement Beat Saber exporter (`export_beat_saber`) in `chart_exporters.py` and UI download.
 - [x] Implement ONNX export and ONNX Runtime inference engine (`export_onnx.py`).
 - [x] Integrate dual inference engines (PyTorch & ONNX Runtime) in `dashboard.py`.
-- [ ] Add real-time microphone stream input for live onset inference.
+- [x] Implement real-time sliding buffer streaming simulator (`audio_stream.py`).
+- [x] Implement custom user audio track upload (`POST /api/upload_audio`).
+- [x] Integrate live stream simulation & audio upload interactive UI card into Studio dashboard.
+- [ ] Add real-time microphone/line-in PortAudio / WebAudio stream input for live onset inference.

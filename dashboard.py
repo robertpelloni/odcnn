@@ -30,6 +30,7 @@ import model
 import music_processor
 import synthesize
 import export_onnx
+import audio_stream
 
 # Global paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -54,9 +55,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory logging ring buffer
+# In-memory logging ring buffer & concurrency locks
 SERVER_LOGS = []
 LOG_LOCK = threading.Lock()
+JOB_LOCK = threading.Lock()
 
 def log_event(message: str):
     timestamp = time.strftime("%H:%M:%S")
@@ -404,6 +406,75 @@ def download_sample_music():
     if path.exists():
         return FileResponse(path, media_type="audio/ogg", filename="test_music.ogg")
     return JSONResponse({"error": "Sample music not found"}, status_code=404)
+
+
+@app.post("/api/upload_audio")
+async def upload_audio(file: UploadFile = File(...)):
+    """Upload custom audio track for onset processing."""
+    try:
+        dest_path = DATA_DIR / "custom_audio.wav"
+        with open(dest_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        log_event(f"Custom audio track uploaded successfully: {file.filename} -> {dest_path}")
+        return JSONResponse({"status": "success", "filename": file.filename, "size": dest_path.stat().st_size})
+    except Exception as e:
+        log_event(f"Audio upload error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.post("/api/action/simulate_stream")
+async def simulate_audio_stream(
+    energy_threshold: float = Form(0.04),
+    chunk_size: int = Form(1024),
+    audio_source: str = Form("sample")
+):
+    """Run real-time simulated chunk-by-chunk streaming onset detector."""
+    def run_stream_sim():
+        with JOB_LOCK:
+            CURRENT_JOB["status"] = "running"
+            CURRENT_JOB["job_name"] = "Streaming Audio Simulation"
+            CURRENT_JOB["message"] = f"Processing chunks ({chunk_size} samples) at threshold {energy_threshold}"
+            CURRENT_JOB["progress"] = 0
+
+        try:
+            log_event(f"Starting simulated audio stream processing ({audio_source})...")
+            if audio_source == "custom" and (DATA_DIR / "custom_audio.wav").exists():
+                src = str(DATA_DIR / "custom_audio.wav")
+            else:
+                src = str(DATA_DIR / "test" / "test_music.ogg")
+
+            streamer = audio_stream.AudioChunkStreamer.from_file(src, chunk_size=chunk_size)
+            detector = audio_stream.StreamingOnsetDetector(energy_threshold=energy_threshold)
+
+            total_chunks = 0
+            total_onsets = 0
+            for c_idx, t_sec, chunk in streamer.stream_chunks():
+                new_onsets = detector.push_chunk(chunk)
+                total_chunks += 1
+                if new_onsets:
+                    total_onsets += len(new_onsets)
+                    for onset in new_onsets:
+                        log_event(f"[Stream Trigger @ {onset['timestamp']:.2f}s] {onset['type'].upper()} (conf: {onset['confidence']}, centroid: {onset['centroid_hz']}Hz)")
+
+            log_event(f"Stream simulation finished: {total_chunks} chunks evaluated, {total_onsets} onsets detected.")
+            with JOB_LOCK:
+                CURRENT_JOB["status"] = "completed"
+                CURRENT_JOB["progress"] = 100
+                CURRENT_JOB["message"] = f"Simulated stream finished: {total_onsets} onsets found"
+        except Exception as e:
+            log_event(f"Streaming error: {e}")
+            with JOB_LOCK:
+                CURRENT_JOB["status"] = "error"
+                CURRENT_JOB["message"] = f"Stream error: {str(e)}"
+        finally:
+            time.sleep(1.5)
+            with JOB_LOCK:
+                if CURRENT_JOB["status"] == "completed":
+                    CURRENT_JOB["status"] = "idle"
+                    CURRENT_JOB["job_name"] = None
+                    CURRENT_JOB["message"] = "Ready"
+
+    threading.Thread(target=run_stream_sim, daemon=True).start()
+    return JSONResponse({"status": "Simulation started in background"})
 
 @app.get("/", response_class=HTMLResponse)
 def index_page():
@@ -989,7 +1060,46 @@ def index_page():
         </form>
       </div>
 
-      <!-- Section 5: Real-Time Engine Logs -->
+      <!-- Section 5: Live Streaming & Custom Audio -->
+      <div class="card col-12">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🎙️ Live Audio Input & Real-Time Stream Simulator</span>
+            <span class="tooltip-icon" title="Stream live audio chunks directly through the sliding buffer onset detector or upload custom music tracks for instantaneous analysis.">?</span>
+          </div>
+          <span class="status-pill pill-ready">Streaming Engine Ready</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">Upload Custom Music File</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Upload any WAV or OGG file to run onset detection and synthesis without modifying the test suite.
+            </p>
+            <div style="display: flex; gap: 10px;">
+              <input type="file" id="customAudioFile" class="form-control" accept=".wav,.ogg,.mp3">
+              <button class="btn btn-primary" onclick="uploadAudioTrack()" style="width: auto; white-space: nowrap;">Upload Track</button>
+            </div>
+            <div id="uploadStatusMsg" style="font-size: 0.75rem; color: var(--accent-cyan); margin-top: 6px;"></div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">Simulate Real-Time Sliding Buffer</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Test low-latency audio chunk processing (1024 samples/chunk) with instantaneous RMS and spectral analysis.
+            </p>
+            <div style="display: flex; gap: 10px;">
+              <select id="simAudioSource" class="form-control">
+                <option value="sample">Built-in Test Track</option>
+                <option value="custom">Custom Uploaded Track</option>
+              </select>
+              <button class="btn btn-primary" onclick="runStreamSimulation()" style="width: auto; white-space: nowrap;">Simulate Stream</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 6: Real-Time Engine Logs -->
       <div class="card col-12">
         <div class="card-header">
           <div class="card-title">
@@ -1130,6 +1240,57 @@ def index_page():
     setInterval(fetchLogs, 2500);
     updateStatus();
     fetchLogs();
+
+    async function uploadAudioTrack() {
+      const fileInput = document.getElementById('customAudioFile');
+      if (!fileInput.files.length) {
+        alert('Please select an audio file to upload.');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      const msg = document.getElementById('uploadStatusMsg');
+      msg.textContent = 'Uploading...';
+      try {
+        const res = await fetch('/api/upload_audio', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.textContent = 'Upload successful: ' + data.filename;
+          msg.style.color = 'var(--accent-green)';
+        } else {
+          msg.textContent = 'Upload failed: ' + (data.error || 'Unknown error');
+          msg.style.color = 'var(--accent-don)';
+        }
+      } catch (e) {
+        msg.textContent = 'Upload error: ' + e.message;
+        msg.style.color = 'var(--accent-don)';
+      }
+    }
+
+    async function runStreamSimulation() {
+      const source = document.getElementById('simAudioSource').value;
+      const formData = new FormData();
+      formData.append('audio_source', source);
+      formData.append('energy_threshold', 0.04);
+      formData.append('chunk_size', 1024);
+
+      try {
+        const res = await fetch('/api/action/simulate_stream', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        alert(data.status || 'Simulation initiated');
+        fetchLogs();
+      } catch (e) {
+        alert('Stream simulation failed: ' + e.message);
+      }
+    }
+
   </script>
 </body>
 </html>

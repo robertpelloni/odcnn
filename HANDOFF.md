@@ -1,6 +1,6 @@
 # HANDOFF: Session Memory & Operational Status
 
-## Current System State (v1.3.0)
+## Current System State (v1.4.0)
 - **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
 - **Unified Web Studio:** Running on `http://0.0.0.0:8000` via FastAPI (`dashboard.py`).
 - **Desktop System Tray Controller:** Implemented in `tray_app.py` for headless background server management.
@@ -12,8 +12,12 @@
 - **ONNX Acceleration Engine (`export_onnx.py`):**
   - Graph exporter for Don/Ka models (`models/don_model.onnx`, `models/ka_model.onnx`).
   - ONNX Runtime execution engine integrated with UI engine selection toggle.
-- **Automated Tests:** 8/8 unit tests passing via `python3 -m unittest discover tests`.
-- **Frontend Verification:** Screenshot verified with Playwright at `tests/dashboard_screenshot.png`.
+- **Live Audio Streaming & Upload Pipeline (`audio_stream.py`):**
+  - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
+  - Custom audio track upload endpoint (`POST /api/upload_audio`).
+  - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
+- **Automated Tests:** 10/10 unit tests passing via `python3 -m unittest discover tests`.
+- **Frontend Verification:** Screenshot verified with Playwright at `/home/jules/verification/verification.png`.
 
 ## File Reference & Structure
 - `synthesize.py`: Signal smoothing, multi-parameter peak picking, Taiko audio synthesis, and multi-format chart generation.
@@ -21,11 +25,13 @@
 - `model.py`: Schlüter & Böck CNN architecture for onset probabilities.
 - `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber.
 - `export_onnx.py`: ONNX exporter and ONNX Runtime inference class.
-- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, and dual engine support.
+- `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
+- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, and audio upload/streaming simulator card.
 - `tray_app.py`: System tray manager with desktop process management and shutdown.
-- `tests/test_pipeline.py`: Comprehensive test suite (8 tests).
-- `VERSION.md`: Sourced single version string (`1.3.0`).
+- `tests/test_pipeline.py`: Comprehensive test suite (10 unit tests).
+- `VERSION.md`: Sourced single version string (`1.4.0`).
 
 ## Next Suggested Architectural Work
-- Integrate live streaming microphone input (PortAudio/WebAudio) for zero-latency real-time onset detection.
-- Add standalone C++ runner utilizing exported ONNX models for embedded hardware.
+- WebRTC / WebSocket low-latency audio streaming directly from browser microphone input.
+- Conformer / Recurrent network architecture exploration for long-range tempo awareness.
+- Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.

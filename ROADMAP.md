@@ -14,9 +14,14 @@
 - [ ] Extend CNN architecture to modern Conformer or CRNN (Convolutional Recurrent Neural Network) backbones.
 - [ ] Add roll/slider (dendera/balloon) detection using sustained spectral energy analysis.
 
-### Milestone 3: Portable Runtime & Microcontroller Integration (v1.3.0 - Current)
+### Milestone 3: Portable Runtime & Microcontroller Integration (v1.3.0 - Completed)
 - [x] Export PyTorch CNN to standardized ONNX graphs (`export_onnx.py`).
 - [x] Support ONNX Runtime engine execution directly inside the dashboard studio.
+
+### Milestone 4: Streaming Audio Pipeline & Custom Dataset Ingestion (v1.4.0 - Current)
+- [x] Live audio sliding buffer streaming simulator (`audio_stream.py`).
+- [x] Real-time onset detection using circular ring buffers, short-term RMS ratios, and spectral centroid classification.
+- [x] Custom user music upload endpoint (`POST /api/upload_audio`) and real-time streaming simulation UI card.
+- [ ] WebRTC / WebSocket streaming for sub-5ms low latency live line-in detection.
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
-- [ ] Live microphone and line-in onset detection via PortAudio / PyAudio streams.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser.

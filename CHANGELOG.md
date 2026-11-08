@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## [1.4.0] - 2025-11-08
+### Added
+- **Real-Time Sliding-Window Audio Chunk Streaming (`audio_stream.py`):**
+  - Added `AudioChunkStreamer` simulating live audio buffer feeds (1024 samples/chunk) for arbitrary duration.
+  - Implemented `StreamingOnsetDetector` utilizing circular ring buffers, short-term RMS energy ratio calculation, and dynamic spectral centroid analysis to detect and classify Don (low-frequency kick) vs. Ka (high-frequency rim/cymbal) onsets on the fly.
+- **Custom User Audio File Upload:**
+  - Added backend endpoint `POST /api/upload_audio` allowing users to upload arbitrary `.wav` or `.ogg` tracks into the studio pipeline (`data/custom_audio.wav`).
+  - Added backend endpoint `POST /api/action/simulate_stream` to run low-latency streaming simulations across either built-in test tracks or custom uploaded tracks.
+- **Unified Single-Page Dashboard Integration:**
+  - Added interactive card: "🎙️ Live Audio Input & Real-Time Stream Simulator" featuring instant file uploading, source selection, and stream execution.
+  - Added real-time visual status badges, interactive tooltips, and diagnostic log notifications.
+- **Comprehensive Unit Testing:**
+  - Added tests `test_audio_streamer_and_detector` and `test_custom_audio_upload_endpoint` to `tests/test_pipeline.py`.
+
 ## [1.3.0] - 2025-11-08
 ### Added
 - **ONNX Model Exporter & Inference Runtime (`export_onnx.py`):**
