@@ -18,10 +18,14 @@
 - [x] Export PyTorch CNN to standardized ONNX graphs (`export_onnx.py`).
 - [x] Support ONNX Runtime engine execution directly inside the dashboard studio.
 
-### Milestone 4: Streaming Audio Pipeline & Custom Dataset Ingestion (v1.4.0 - Current)
+### Milestone 4: Streaming Audio Pipeline & Custom Dataset Ingestion (v1.4.0 - Completed)
 - [x] Live audio sliding buffer streaming simulator (`audio_stream.py`).
 - [x] Real-time onset detection using circular ring buffers, short-term RMS ratios, and spectral centroid classification.
 - [x] Custom user music upload endpoint (`POST /api/upload_audio`) and real-time streaming simulation UI card.
+
+### Milestone 5: Unified Automation & CLI Orchestration (v1.5.0 - Current)
+- [x] Consolidated CLI entry point (`run.py`) unifying `studio`, `train`, `infer`, `synthesize`, `export-onnx`, and `stream-sim`.
+- [x] Comprehensive CLI unit test verification (`tests/test_cli.py`).
 - [ ] WebRTC / WebSocket streaming for sub-5ms low latency live line-in detection.
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser.

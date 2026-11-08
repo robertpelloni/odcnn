@@ -15,12 +15,31 @@ cd odcnn
 pip install -r requirement.txt
 ```
 
-## Running the Unified Web Dashboard
-Launch the unified dashboard:
+## Running via Unified CLI Runner (`run.py`)
+Launch the unified studio:
 ```bash
-python3 dashboard.py --port 8000
+python3 run.py studio --port 8000
 ```
 Then navigate your browser to `http://localhost:8000`.
+
+Or execute pipeline commands directly:
+```bash
+# Train Don/Ka models
+python3 run.py train --target don
+python3 run.py train --target ka
+
+# Run neural inference
+python3 run.py infer --target both
+
+# Synthesize charts (TJA, OSU, SM, Beat Saber)
+python3 run.py synthesize --delta 0.05 --wait 3
+
+# Export PyTorch weights to portable ONNX graphs
+python3 run.py export-onnx
+
+# Simulate real-time streaming sliding buffer onset detection
+python3 run.py stream-sim --chunk-size 1024
+```
 
 ## Running the System Tray Icon
 On desktop environments with a GUI display:
@@ -28,23 +47,3 @@ On desktop environments with a GUI display:
 python3 tray_app.py
 ```
 This enables launching the dashboard in the default browser, monitoring health, and gracefully shutting down the background server.
-
-## CLI Usage (Headless / Scripting)
-1. **Prepare Audio Dataset:**
-   ```bash
-   python3 music_processor.py reduced  # or 'train', 'test', 'val'
-   ```
-2. **Train Models:**
-   ```bash
-   python3 train.py don
-   python3 train.py ka
-   ```
-3. **Run Inference:**
-   ```bash
-   python3 infer.py don
-   python3 infer.py ka
-   ```
-4. **Synthesize Chart & Audio:**
-   ```bash
-   python3 synthesize.py
-   ```

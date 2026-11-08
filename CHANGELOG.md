@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.5.0] - 2025-11-08
+### Added
+- **Unified CLI Entry Point (`run.py`):**
+  - Added clean, standard CLI argument parser with subcommands: `studio`, `train`, `infer`, `synthesize`, `export-onnx`, and `stream-sim`.
+  - Enables direct scripted or interactive execution of any stage in the neural onset pipeline.
+- **CLI Test Suite:**
+  - Added `tests/test_cli.py` covering main and subcommand help parameters.
+
 ## [1.4.0] - 2025-11-08
 ### Added
 - **Real-Time Sliding-Window Audio Chunk Streaming (`audio_stream.py`):**
