@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## [2.2.0] - 2025-11-08
+### Added
+- **Standard MIDI File (SMF Type 0) Exporter (`chart_exporters.py`):**
+  - Designed and implemented a pure-Python binary SMF Type 0 exporter `export_midi(...)` with zero external dependencies.
+  - Generates standard `MThd` and `MTrk` binary chunks with variable-length quantity (`VLQ`) delta-time encoding.
+  - Maps rhythm onsets to General MIDI Percussion Channel 10 (`0x09`): Don maps to MIDI Pitch 36 (Bass Drum 1 / C2) and Ka maps to MIDI Pitch 38 (Acoustic Snare / D2).
+  - Encodes microsecond tempo meta events (`0xFF 0x51 0x03`), track name meta events (`0xFF 0x03`), note-on events (`0x99`), note-off events (`0x89`), and End-of-Track meta events (`0xFF 0x2F 0x00`).
+- **Pipeline & DAW Integration:**
+  - Integrated `export_midi(...)` into `synthesize.py` generating `inferred_notes.mid` alongside `.tja`, `.osu`, `.sm`, and `.dat` chart files.
+  - Integrated MIDI regeneration into the beat grid re-quantization endpoint `/api/chart/quantize` in `dashboard.py`.
+- **FastAPI Studio REST API & UI Controls:**
+  - Added `/api/download/midi` download endpoint in `dashboard.py` with `audio/midi` media type and attachment headers.
+  - Added interactive "Download .MID" button (`#downloadMidiBtn`) with tooltips to the unified Studio Chart Exporters & Downloads card.
+- **Automated Test Suite & Frontend Verification:**
+  - Added unit test `test_export_midi_and_download_endpoint` in `tests/test_pipeline.py` verifying binary header markers (`MThd`, `MTrk`), channel assignments, event ordering, and HTTP download response.
+  - Updated Playwright interaction test `tests/verify_frontend_interactions.py` verifying DOM presence and button interaction, validated with visual screenshot inspection.
+
 ## [2.1.0] - 2025-11-08
 ### Added
 - **Interactive BPM Tap Tempo Calculator:**

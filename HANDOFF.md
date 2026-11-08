@@ -1,11 +1,17 @@
 # HANDOFF: Session Memory & Operational Status
 
-## Current System State (v2.1.0)
+## Current System State (v2.2.0)
 - **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
+- **Standard MIDI File (SMF Type 0) Exporter (`chart_exporters.py` & `synthesize.py`):**
+  - Standalone, zero-dependency pure-Python binary SMF Type 0 exporter `export_midi()`.
+  - Maps Don to MIDI note 36 (General MIDI Kick / Bass Drum 1) and Ka to MIDI note 38 (Acoustic Snare) on percussion channel 10 (`0x09`).
+  - Generates tempo meta events, track title, and paired note-on/note-off events with variable-length delta times.
+  - Automatically exported during synthesis (`inferred_notes.mid`) and beat grid re-quantization.
+  - Studio UI includes "Download .MID" button linked to `/api/download/midi`.
 - **BPM Tap Tempo & Beat Grid Snapping Engine (`chart_exporters.py` & `dashboard.py`):**
   - Live interactive Tap Tempo calculator with running inter-tap interval averaging and automatic pause reset (>2.5s).
   - Mathematical grid quantizer `quantize_timestamps_to_grid()` snapping timestamps to arbitrary subdivisions (1/4 quarter notes up to 1/32 notes) with duplicate prevention.
-  - `/api/chart/quantize` endpoint recalculating `.tja` measure structures and regenerating `.osu`, `.sm`, and `.dat` rhythm charts.
+  - `/api/chart/quantize` endpoint recalculating `.tja` measure structures and regenerating `.osu`, `.sm`, `.dat`, and `.mid` rhythm charts.
   - Interactive studio card: "⏱️ BPM Tap Tempo & Beat Grid Quantizer" with live BPM badge, subdivision selector, offset adjustment, and one-click execution.
 - **CRNN + Multihead Rhythm Attention Architecture (`model_crnn.py`):**
   - Modern hybrid architecture `CRNNOnsetMaxNet` coupling Conv2D feature extractors with frequency pooling, BiGRU sequence modeling, and temporal Multihead Attention (`RhythmAttention`).
@@ -26,11 +32,12 @@
 - **Unified CLI Runner (`run.py`):** Consolidated command line interface supporting `studio`, `train`, `infer`, `synthesize`, `export-onnx`, and `stream-sim`.
 - **Unified Web Studio:** Running on `http://0.0.0.0:8000` via FastAPI (`dashboard.py`).
 - **Desktop System Tray Controller:** Implemented in `tray_app.py` for headless background server management.
-- **Rhythm Game Exporters (`chart_exporters.py`):**
+- **Rhythm Game & DAW Exporters (`chart_exporters.py`):**
   - Taiko no Tatsujin (`.tja`)
   - osu! Taiko Mode 1 (`.osu`)
   - StepMania Dance Single (`.sm`)
   - Beat Saber (`.dat` v2 schema)
+  - Standard MIDI File Type 0 (`.mid`)
 - **ONNX Acceleration Engine (`export_onnx.py`):**
   - Graph exporter for CNN and CRNN models (`models/don_model.onnx`, `models/ka_model.onnx`, `models/don_crnn.onnx`, `models/ka_crnn.onnx`).
   - ONNX Runtime execution engine integrated with UI engine selection toggle.
@@ -38,8 +45,8 @@
   - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
   - Custom audio track upload endpoint (`POST /api/upload_audio`).
   - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
-- **Automated Tests:** 23/23 unit tests passing via `python3 -m unittest discover tests`.
-- **Frontend Verification:** Playwright frontend interaction test verified Tap Tempo and Beat Grid Quantizer, confirmed via visual inspection of `/home/jules/verification/verification.png`.
+- **Automated Tests:** 24/24 unit tests passing via `python3 -m unittest discover tests`.
+- **Frontend Verification:** Playwright frontend interaction test verified Tap Tempo, Beat Grid Quantizer, and MIDI download integration, confirmed via visual inspection of `/home/jules/verification/verification.png`.
 
 ## File Reference & Structure
 - `run.py`: Unified CLI entry point for all operations.
@@ -47,19 +54,18 @@
 - `model.py`: Original Schlüter & Böck CNN architecture for onset probabilities.
 - `synthesize.py`: Signal smoothing, multi-parameter peak picking, Taiko audio synthesis, and multi-format chart generation.
 - `music_processor.py`: STFT and Mel-frequency filterbank feature extraction.
-- `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber, and beat grid quantizer.
+- `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber, Standard MIDI Files, and beat grid quantizer.
 - `export_onnx.py`: ONNX exporter and ONNX Runtime inference class.
 - `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
-- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, audio upload/streaming simulator, WebSocket live mic streaming, interactive waveform scrubber, Mel spectrogram heatmap, model architecture selection, and BPM tap tempo / beat grid quantizer.
+- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, audio upload/streaming simulator, WebSocket live mic streaming, interactive waveform scrubber, Mel spectrogram heatmap, model architecture selection, BPM tap tempo / beat grid quantizer, and multi-format chart downloads.
 - `tray_app.py`: System tray manager with desktop process management and shutdown.
 - `tests/test_crnn.py`: Unit test suite for CRNN architecture, forward pass, gradients, and ONNX Runtime batch inference (5 tests).
-- `tests/test_pipeline.py`: Comprehensive test suite (16 unit tests including waveform, spectrogram, WebSocket, and quantization tests).
+- `tests/test_pipeline.py`: Comprehensive test suite (17 unit tests including waveform, spectrogram, WebSocket, quantization, and MIDI export tests).
 - `tests/test_cli.py`: CLI entry point test suite (2 unit tests).
 - `tests/verify_frontend_interactions.py`: Playwright frontend interaction test script.
-- `VERSION.md`: Sourced single version string (`2.1.0`).
+- `VERSION.md`: Sourced single version string (`2.2.0`).
 
 ## Next Suggested Architectural Work
-- Direct MIDI chart export (.mid) for DAW integration.
 - Dynamic multi-channel audio stems separation prior to onset feature extraction.
 - Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.
 - WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.

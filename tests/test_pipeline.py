@@ -261,5 +261,36 @@ class TestODCNNPipeline(unittest.TestCase):
         self.assertIn("don_count", data)
         self.assertIn("ka_count", data)
 
+    def test_export_midi_and_download_endpoint(self):
+        """Test Standard MIDI File generator and /api/download/midi endpoint."""
+        import numpy as np
+        import chart_exporters
+        from fastapi.testclient import TestClient
+        import dashboard
+
+        class MockSong:
+            samplerate = 44100
+
+        # Test direct export_midi generator
+        midi_path = Path("/tmp/test_export.mid")
+        don = np.array([100, 200, 400])
+        ka = np.array([150, 300])
+        res_path = chart_exporters.export_midi(
+            str(midi_path), MockSong(), don, ka, title="Test MIDI", bpm=128.0
+        )
+        self.assertTrue(midi_path.exists())
+        with open(midi_path, "rb") as f:
+            content = f.read()
+        self.assertTrue(content.startswith(b"MThd"))
+        self.assertIn(b"MTrk", content)
+        self.assertIn(b"Test MIDI", content)
+
+        # Test dashboard download endpoint
+        client = TestClient(dashboard.app)
+        res = client.get("/api/download/midi")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.headers["content-type"], "audio/midi")
+        self.assertTrue(res.content.startswith(b"MThd"))
+
 if __name__ == "__main__":
     unittest.main()

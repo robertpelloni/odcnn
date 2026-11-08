@@ -97,6 +97,12 @@ def run():
         print(f"Quantize result: {badge_text}")
         assert "Quantized:" in badge_text
 
+        # Verify MIDI download button exists
+        midi_btn = page.locator("#downloadMidiBtn")
+        assert midi_btn.is_visible(), "Download MIDI button should be visible"
+        assert "/api/download/midi" in midi_btn.get_attribute("href")
+        print("MIDI download button verified successfully")
+
         page.screenshot(path="/home/jules/verification/verification.png", full_page=True)
         print("Screenshot saved to /home/jules/verification/verification.png")
 

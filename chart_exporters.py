@@ -270,3 +270,123 @@ def quantize_timestamps_to_grid(
     # Keep timestamps >= 0
     quantized = quantized[quantized >= 0.0]
     return np.unique(np.round(quantized, 4))
+
+
+def _encode_variable_length_quantity(value: int) -> bytes:
+    """Encodes an integer into MIDI variable-length quantity (VLQ) bytes."""
+    val = int(value)
+    if val < 0:
+        val = 0
+    buffer = val & 0x7F
+    bytes_arr = []
+    val >>= 7
+    while val > 0:
+        bytes_arr.append((val & 0x7F) | 0x80)
+        val >>= 7
+    bytes_arr.reverse()
+    bytes_arr.append(buffer)
+    return bytes(bytes_arr)
+
+
+def export_midi(
+    filename: str,
+    song,
+    don_timestamp: np.ndarray,
+    ka_timestamp: np.ndarray,
+    title: str = "ODCNN Inferred Track",
+    bpm: float = 120.0,
+    ticks_per_beat: int = 480
+) -> str:
+    """
+    Exports detected onsets to a Standard MIDI File (SMF Type 0).
+    Pure-Python, zero external dependencies. Compatible with all DAWs and synths.
+    Standard General MIDI Percussion:
+      Don -> Note 36 (Bass Drum 1 / C2 in DAW nomenclature, pitch 36)
+      Ka  -> Note 38 (Acoustic Snare / D2, pitch 38)
+    Channel: MIDI Channel 10 (0x09 zero-indexed) for percussion standard.
+    """
+    samplerate = getattr(song, "samplerate", 44100)
+    don_sec = don_timestamp * 512 / samplerate
+    ka_sec = ka_timestamp * 512 / samplerate
+
+    sec_per_beat = 60.0 / max(1.0, bpm)
+    # 1 second = (bpm / 60.0) beats = (bpm * ticks_per_beat / 60.0) ticks
+    ticks_per_sec = (bpm * ticks_per_beat) / 60.0
+
+    # Build note events list: (tick, event_type, pitch, velocity)
+    # event_type: 0 for note_on, 1 for note_off
+    # Note duration in ticks (e.g. 1/16 note = ticks_per_beat // 4)
+    note_duration_ticks = max(1, ticks_per_beat // 4)
+
+    events = []
+    # Channel 10 is 0x09
+    channel = 0x09
+    status_on = 0x90 | channel
+    status_off = 0x80 | channel
+
+    # Add Don notes (Pitch 36, velocity 100)
+    for t in don_sec:
+        tick = int(round(t * ticks_per_sec))
+        events.append((tick, 0, 36, 100))
+        events.append((tick + note_duration_ticks, 1, 36, 0))
+
+    # Add Ka notes (Pitch 38, velocity 95)
+    for t in ka_sec:
+        tick = int(round(t * ticks_per_sec))
+        events.append((tick, 0, 38, 95))
+        events.append((tick + note_duration_ticks, 1, 38, 0))
+
+    # Sort events primarily by tick, then note_off before note_on at same tick
+    events.sort(key=lambda x: (x[0], -x[1]))
+
+    track_bytes = bytearray()
+
+    # 1. Track Name Meta Event: delta-time 0, 0xFF 0x03 len title
+    title_bytes = title.encode("latin-1", errors="replace")
+    track_bytes.extend(_encode_variable_length_quantity(0))
+    track_bytes.extend(b"\xFF\x03" + bytes([len(title_bytes)]) + title_bytes)
+
+    # 2. Set Tempo Meta Event: delta-time 0, 0xFF 0x51 0x03 [3-byte microseconds per beat]
+    tempo_us = int(round(60000000.0 / bpm))
+    tempo_bytes = tempo_us.to_bytes(3, byteorder="big")
+    track_bytes.extend(_encode_variable_length_quantity(0))
+    track_bytes.extend(b"\xFF\x51\x03" + tempo_bytes)
+
+    # 3. Stream note events with delta-times
+    last_tick = 0
+    for tick, evt_type, pitch, vel in events:
+        delta = max(0, tick - last_tick)
+        last_tick = tick
+        track_bytes.extend(_encode_variable_length_quantity(delta))
+        if evt_type == 0:
+            # Note On
+            track_bytes.extend(bytes([status_on, pitch, vel]))
+        else:
+            # Note Off
+            track_bytes.extend(bytes([status_off, pitch, vel]))
+
+    # 4. End of Track Meta Event: 0xFF 0x2F 0x00
+    track_bytes.extend(_encode_variable_length_quantity(0))
+    track_bytes.extend(b"\xFF\x2F\x00")
+
+    # Construct SMF Header Chunk: 'MThd', length 6, format 0 (single track), 1 track, ticks_per_beat
+    header_chunk = bytearray()
+    header_chunk.extend(b"MThd")
+    header_chunk.extend((6).to_bytes(4, byteorder="big"))
+    header_chunk.extend((0).to_bytes(2, byteorder="big"))  # SMF Type 0
+    header_chunk.extend((1).to_bytes(2, byteorder="big"))  # 1 Track
+    header_chunk.extend(ticks_per_beat.to_bytes(2, byteorder="big"))
+
+    # Construct Track Chunk: 'MTrk', length of track_bytes, track_bytes
+    track_chunk = bytearray()
+    track_chunk.extend(b"MTrk")
+    track_chunk.extend(len(track_bytes).to_bytes(4, byteorder="big"))
+    track_chunk.extend(track_bytes)
+
+    midi_data = header_chunk + track_chunk
+
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
+    with open(filename, "wb") as f:
+        f.write(midi_data)
+
+    return filename

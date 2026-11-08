@@ -364,6 +364,10 @@ def action_synthesize(
         synthesize.export_beat_saber(str(out_dat), song, song.don_timestamp, song.ka_timestamp)
         log_event(f"Beat Saber chart (.dat) written to {out_dat}")
 
+        out_mid = INFERENCE_DIR / "inferred_notes.mid"
+        synthesize.export_midi(str(out_mid), song, song.don_timestamp, song.ka_timestamp)
+        log_event(f"Standard MIDI chart (.mid) written to {out_mid}")
+
     run_background_task("Synthesize Chart & Audio", do_synthesize)
     return {"status": "ok", "message": "Synthesis initiated"}
 
@@ -410,6 +414,13 @@ def download_beatsaber():
     if path.exists():
         return FileResponse(path, media_type="application/json", filename="inferred_notes.dat")
     return JSONResponse({"error": "Beat Saber chart file not found"}, status_code=404)
+
+@app.get("/api/download/midi")
+def download_midi():
+    path = INFERENCE_DIR / "inferred_notes.mid"
+    if path.exists():
+        return FileResponse(path, media_type="audio/midi", filename="inferred_notes.mid")
+    return JSONResponse({"error": "MIDI chart file not found"}, status_code=404)
 
 @app.get("/api/download/sample_music")
 def download_sample_music():
@@ -620,6 +631,11 @@ async def quantize_charts(
         chart_exporters.export_beat_saber(
             str(INFERENCE_DIR / "inferred_notes.dat"),
             mock_song, don_frames, ka_frames, bpm=bpm
+        )
+        chart_exporters.export_midi(
+            str(INFERENCE_DIR / "inferred_notes.mid"),
+            mock_song, don_frames, ka_frames,
+            title="ODCNN Quantized MIDI Track", bpm=bpm
         )
 
         # Re-write .tja chart with quantized measures
@@ -1231,6 +1247,10 @@ def index_page():
           <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.8rem; color: var(--text-muted);">Beat Saber Track (.dat):</span>
             <a href="/api/download/beatsaber" download class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .DAT</a>
+          </div>
+          <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Standard MIDI Track (.mid):</span>
+            <a href="/api/download/midi" download id="downloadMidiBtn" class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .MID</a>
           </div>
         </div>
       </div>

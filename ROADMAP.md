@@ -57,7 +57,13 @@
 - [x] Multi-format chart re-quantization endpoint (`/api/chart/quantize`) rewriting `.tja`, `.osu`, `.sm`, and `.dat` files.
 - [x] Interactive studio UI card for tap tempo, grid division selection, and one-click chart quantization.
 
-### Milestone 11: Embedded Integration & Future Expansion (Next)
+### Milestone 11: Standard MIDI File Export & DAW Integration (v2.2.0 - Completed)
+- [x] Pure-Python binary Standard MIDI File (SMF Type 0) exporter `export_midi(...)` with variable-length quantity delta encoding.
+- [x] General MIDI percussion channel 10 mapping for Don (Kick 36) and Ka (Snare 38).
+- [x] Synthesis pipeline generation (`inferred_notes.mid`) and `/api/download/midi` download endpoint in FastAPI Studio.
+- [x] Studio UI "Download .MID" button and unit test / Playwright integration verification.
+
+### Milestone 12: Embedded Integration & Audio Stems (Next)
+- [ ] Dynamic multi-channel audio stems separation prior to onset feature extraction.
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
-- [ ] Direct MIDI chart export (.mid) for digital audio workstation (DAW) timeline integration.

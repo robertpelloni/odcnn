@@ -24,5 +24,5 @@
 - [x] Add architecture selection (`cnn` vs. `crnn`) across pipeline (`infer.py`, `dashboard.py`, `run.py`, `export_onnx.py`).
 - [x] Export CRNN to ONNX format and verify ONNX Runtime inference.
 - [x] Add BPM tap tempo & beat grid snapping tool.
-- [ ] Add interactive MIDI file chart export (.mid).
+- [x] Add interactive Standard MIDI File (SMF Type 0) chart export (.mid).
 - [ ] Add dynamic multi-channel audio stems separation prior to onset feature extraction.
