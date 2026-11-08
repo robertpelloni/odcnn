@@ -20,7 +20,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 import soundfile as sf
 import torch
-from fastapi import FastAPI, Request, BackgroundTasks, Form, UploadFile, File
+from fastapi import FastAPI, Request, BackgroundTasks, Form, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -475,6 +475,35 @@ async def simulate_audio_stream(
 
     threading.Thread(target=run_stream_sim, daemon=True).start()
     return JSONResponse({"status": "Simulation started in background"})
+
+
+@app.websocket("/ws/stream")
+async def websocket_stream_endpoint(websocket: WebSocket):
+    """
+    Real-time low-latency WebSocket stream receiver.
+    Accepts raw binary Float32 PCM audio chunks from browser/microphone and returns onset events.
+    """
+    await websocket.accept()
+    detector = audio_stream.StreamingOnsetDetector(energy_threshold=0.035)
+    log_event("WebSocket live audio streaming client connected.")
+    try:
+        while True:
+            data = await websocket.receive_bytes()
+            if not data:
+                break
+            # Convert raw bytes to float32 numpy array
+            chunk = np.frombuffer(data, dtype=np.float32)
+            if len(chunk) > 0:
+                onsets = detector.push_chunk(chunk)
+                if onsets:
+                    for onset in onsets:
+                        log_event(f"[Live Mic Onset] {onset['type'].upper()} at {onset['timestamp']:.2f}s ({onset['centroid_hz']}Hz)")
+                    await websocket.send_json({"onsets": onsets})
+    except WebSocketDisconnect:
+        log_event("WebSocket live audio client disconnected.")
+    except Exception as e:
+        log_event(f"WebSocket error: {e}")
+
 
 @app.get("/", response_class=HTMLResponse)
 def index_page():
@@ -1070,7 +1099,7 @@ def index_page():
           <span class="status-pill pill-ready">Streaming Engine Ready</span>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
           <div>
             <h4 style="font-size: 0.95rem; margin-bottom: 8px;">Upload Custom Music File</h4>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
@@ -1095,6 +1124,21 @@ def index_page():
               </select>
               <button class="btn btn-primary" onclick="runStreamSimulation()" style="width: auto; white-space: nowrap;">Simulate Stream</button>
             </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">Live Microphone Stream</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Direct low-latency WebSocket audio stream directly from your browser microphone.
+            </p>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button id="btnToggleMic" class="btn btn-primary" onclick="toggleMicrophoneStream()" style="width: auto; white-space: nowrap;">🎙️ Start Live Mic</button>
+              <div id="micIndicator" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted);">
+                <span id="hitBadgeDon" style="display: none; padding: 2px 6px; border-radius: 4px; background: var(--accent-don); color: white; font-weight: bold;">DON</span>
+                <span id="hitBadgeKa" style="display: none; padding: 2px 6px; border-radius: 4px; background: var(--accent-ka); color: white; font-weight: bold;">KA</span>
+              </div>
+            </div>
+            <div id="micStatusMsg" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">Microphone idle</div>
           </div>
         </div>
       </div>
@@ -1288,6 +1332,98 @@ def index_page():
         fetchLogs();
       } catch (e) {
         alert('Stream simulation failed: ' + e.message);
+      }
+    }
+
+    let micWs = null;
+    let audioContext = null;
+    let micStream = null;
+    let micProcessor = null;
+
+    async function toggleMicrophoneStream() {
+      const btn = document.getElementById('btnToggleMic');
+      const statusMsg = document.getElementById('micStatusMsg');
+
+      if (micWs) {
+        // Stop streaming
+        if (micProcessor) {
+          micProcessor.disconnect();
+          micProcessor = null;
+        }
+        if (micStream) {
+          micStream.getTracks().forEach(track => track.stop());
+          micStream = null;
+        }
+        if (audioContext) {
+          audioContext.close();
+          audioContext = null;
+        }
+        micWs.close();
+        micWs = null;
+        btn.textContent = '🎙️ Start Live Mic';
+        btn.className = 'btn btn-primary';
+        statusMsg.textContent = 'Microphone idle';
+        statusMsg.style.color = 'var(--text-muted)';
+        return;
+      }
+
+      // Start streaming
+      try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        micWs = new WebSocket(`${protocol}//${window.location.host}/ws/stream`);
+
+        micWs.onopen = async () => {
+          statusMsg.textContent = 'Connecting microphone...';
+          audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const source = audioContext.createMediaStreamSource(micStream);
+          micProcessor = audioContext.createScriptProcessor(1024, 1, 1);
+
+          micProcessor.onaudioprocess = (e) => {
+            if (micWs && micWs.readyState === WebSocket.OPEN) {
+              const inputData = e.inputBuffer.getChannelData(0);
+              micWs.send(inputData.buffer);
+            }
+          };
+
+          source.connect(micProcessor);
+          micProcessor.connect(audioContext.destination);
+
+          btn.textContent = '⏹️ Stop Live Mic';
+          btn.className = 'btn btn-danger';
+          statusMsg.textContent = 'Live stream active (44.1kHz)';
+          statusMsg.style.color = 'var(--accent-green)';
+        };
+
+        micWs.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          if (msg.onsets && msg.onsets.length > 0) {
+            msg.onsets.forEach(onset => {
+              triggerVisualHit(onset.type);
+            });
+          }
+        };
+
+        micWs.onclose = () => {
+          statusMsg.textContent = 'WebSocket disconnected';
+        };
+
+      } catch (err) {
+        statusMsg.textContent = 'Microphone error: ' + err.message;
+        statusMsg.style.color = 'var(--accent-don)';
+        micWs = null;
+      }
+    }
+
+    function triggerVisualHit(type) {
+      const badgeDon = document.getElementById('hitBadgeDon');
+      const badgeKa = document.getElementById('hitBadgeKa');
+      if (type === 'don') {
+        badgeDon.style.display = 'inline-block';
+        setTimeout(() => { badgeDon.style.display = 'none'; }, 200);
+      } else {
+        badgeKa.style.display = 'inline-block';
+        setTimeout(() => { badgeKa.style.display = 'none'; }, 200);
       }
     }
 

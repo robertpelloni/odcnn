@@ -17,4 +17,5 @@
 - [x] Implement real-time sliding buffer streaming simulator (`audio_stream.py`).
 - [x] Implement custom user audio track upload (`POST /api/upload_audio`).
 - [x] Integrate live stream simulation & audio upload interactive UI card into Studio dashboard.
-- [ ] Add real-time microphone/line-in PortAudio / WebAudio stream input for live onset inference.
+- [x] Add real-time microphone/line-in PortAudio / WebAudio stream input for live onset inference via `/ws/stream`.
+- [ ] Add interactive waveform canvas scrubbing with visual onset markers.

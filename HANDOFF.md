@@ -1,7 +1,11 @@
 # HANDOFF: Session Memory & Operational Status
 
-## Current System State (v1.5.0)
+## Current System State (v1.6.0)
 - **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
+- **Live WebSocket Microphone Streaming (`/ws/stream`):**
+  - FastAPI WebSocket endpoint accepts Float32 binary PCM audio chunks directly from user microphones.
+  - Streaming onset detector evaluates RMS energy jumps and classifies hits as Don or Ka based on spectral centroid frequencies.
+  - Studio UI includes live microphone start/stop toggle, connection indicators, and animated visual hit badges (Red Don / Blue Ka).
 - **Unified CLI Runner (`run.py`):** Consolidated command line interface supporting `studio`, `train`, `infer`, `synthesize`, `export-onnx`, and `stream-sim`.
 - **Unified Web Studio:** Running on `http://0.0.0.0:8000` via FastAPI (`dashboard.py`).
 - **Desktop System Tray Controller:** Implemented in `tray_app.py` for headless background server management.
@@ -17,7 +21,7 @@
   - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
   - Custom audio track upload endpoint (`POST /api/upload_audio`).
   - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
-- **Automated Tests:** 13/13 unit tests passing via `python3 -m unittest discover tests`.
+- **Automated Tests:** 14/14 unit tests passing via `python3 -m unittest discover tests`.
 - **Frontend Verification:** Screenshot verified with Playwright at `/home/jules/verification/verification.png`.
 
 ## File Reference & Structure
@@ -28,13 +32,14 @@
 - `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber.
 - `export_onnx.py`: ONNX exporter and ONNX Runtime inference class.
 - `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
-- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, and audio upload/streaming simulator card.
+- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, audio upload/streaming simulator, and WebSocket live mic streaming.
 - `tray_app.py`: System tray manager with desktop process management and shutdown.
-- `tests/test_pipeline.py`: Comprehensive test suite (11 unit tests).
+- `tests/test_pipeline.py`: Comprehensive test suite (12 unit tests including WebSocket test).
 - `tests/test_cli.py`: CLI entry point test suite (2 unit tests).
-- `VERSION.md`: Sourced single version string (`1.5.0`).
+- `tests/verify_frontend_interactions.py`: Playwright frontend interaction test script.
+- `VERSION.md`: Sourced single version string (`1.6.0`).
 
 ## Next Suggested Architectural Work
-- WebRTC / WebSocket low-latency audio streaming directly from browser microphone input.
+- Interactive waveform visualizer with timeline scrubbing and onset hit marker placement.
 - Conformer / Recurrent network architecture exploration for long-range tempo awareness.
 - Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.

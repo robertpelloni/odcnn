@@ -22,6 +22,10 @@ def main():
         btn_stream = page.locator("button:has-text('Simulate Stream')")
         assert btn_stream.is_visible()
 
+        btn_mic = page.locator("#btnToggleMic")
+        assert btn_mic.is_visible()
+        assert "Start Live Mic" in btn_mic.inner_text()
+
         # Check dialog alert when clicking simulate stream
         page.once("dialog", lambda dialog: dialog.accept())
         btn_stream.click()

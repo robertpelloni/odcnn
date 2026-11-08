@@ -180,5 +180,24 @@ class TestODCNNPipeline(unittest.TestCase):
         data = response.json()
         self.assertIn("status", data)
 
+    def test_websocket_audio_stream(self):
+        """Test WebSocket /ws/stream binary PCM chunk intake and onset emission."""
+        with self.client.websocket_connect("/ws/stream") as websocket:
+            # Send silent chunk
+            silent_chunk = np.zeros(1024, dtype=np.float32)
+            websocket.send_bytes(silent_chunk.tobytes())
+
+            # Send spike chunk simulating a drum hit
+            t = np.linspace(0, 0.02, 1024, endpoint=False)
+            hit_chunk = (0.8 * np.sin(2 * np.pi * 150 * t)).astype(np.float32)
+            websocket.send_bytes(hit_chunk.tobytes())
+
+            # Receive onset response
+            data = websocket.receive_json()
+            self.assertIn("onsets", data)
+            self.assertGreater(len(data["onsets"]), 0)
+            self.assertIn("type", data["onsets"][0])
+            self.assertIn(data["onsets"][0]["type"], ["don", "ka"])
+
 if __name__ == "__main__":
     unittest.main()

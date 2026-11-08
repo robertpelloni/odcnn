@@ -23,9 +23,17 @@
 - [x] Real-time onset detection using circular ring buffers, short-term RMS ratios, and spectral centroid classification.
 - [x] Custom user music upload endpoint (`POST /api/upload_audio`) and real-time streaming simulation UI card.
 
-### Milestone 5: Unified Automation & CLI Orchestration (v1.5.0 - Current)
+### Milestone 5: Unified Automation & CLI Orchestration (v1.5.0 - Completed)
 - [x] Consolidated CLI entry point (`run.py`) unifying `studio`, `train`, `infer`, `synthesize`, `export-onnx`, and `stream-sim`.
 - [x] Comprehensive CLI unit test verification (`tests/test_cli.py`).
-- [ ] WebRTC / WebSocket streaming for sub-5ms low latency live line-in detection.
+
+### Milestone 6: Live WebSocket Microphone Streaming (v1.6.0 - Current)
+- [x] Bidirectional WebSocket audio streaming endpoint in FastAPI (`/ws/stream`).
+- [x] Client-side microphone capture (WebAudio API `ScriptProcessorNode` to Float32 PCM) directly piped to server.
+- [x] Real-time visual hit indicators (animated Red Don and Blue Ka flash badges) in the Unified Studio.
+- [x] End-to-end WebSocket automated test suite (`tests/test_pipeline.py`) and Playwright validation.
+
+### Milestone 7: Advanced Architectures & Embedded Integration (Future)
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
-- [ ] WebAssembly / WebAudio client-side onset inference in browser.
+- [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
+- [ ] Conformer / CRNN architectures for joint rhythm & pitch contour estimation.

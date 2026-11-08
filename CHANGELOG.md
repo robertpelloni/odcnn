@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.6.0] - 2025-11-08
+### Added
+- **Live WebSocket Microphone Audio Streaming:**
+  - Added `@app.websocket("/ws/stream")` endpoint in `dashboard.py` accepting binary Float32 PCM audio streaming chunks directly from client microphones.
+  - Implemented continuous streaming onset detection and classification via `StreamingOnsetDetector` with instantaneous JSON onset trigger event notifications (`DON`, `KA`, confidence, energy, spectral centroid).
+  - Designed interactive UI controls in the Unified Studio with WebAudio API microphone input streaming, dynamic connection indicators, live onset badges with color animations (Red Don / Blue Ka), and detailed status feedback.
+- **WebSocket Streaming Unit Test:**
+  - Added `test_websocket_audio_stream` in `tests/test_pipeline.py` verifying binary PCM communication, onset event dispatch, and connection lifecycle.
+- **Frontend Interaction Verification:**
+  - Created automated Playwright verification script `tests/verify_frontend_interactions.py` ensuring responsive interaction, error-free DOM state, and visual UI fidelity.
+
 ## [1.5.0] - 2025-11-08
 ### Added
 - **Unified CLI Entry Point (`run.py`):**
