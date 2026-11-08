@@ -119,6 +119,8 @@ def get_status():
     has_ka_infer = (PICKLES_DIR / "ka_inference.pickle").exists()
     has_synthesized_wav = (INFERENCE_DIR / "inferred_music.wav").exists()
     has_synthesized_tja = (INFERENCE_DIR / "inferred_notes.tja").exists()
+    has_synthesized_osu = (INFERENCE_DIR / "inferred_notes.osu").exists()
+    has_synthesized_sm = (INFERENCE_DIR / "inferred_notes.sm").exists()
 
     with open(BASE_DIR / "VERSION.md", "r") as vf:
         version_str = vf.read().strip()
@@ -139,6 +141,8 @@ def get_status():
             "ka_inference": has_ka_infer,
             "synthesized_wav": has_synthesized_wav,
             "synthesized_tja": has_synthesized_tja,
+            "synthesized_osu": has_synthesized_osu,
+            "synthesized_sm": has_synthesized_sm,
         }
     }
 
@@ -299,7 +303,15 @@ def action_synthesize(
 
         out_tja = INFERENCE_DIR / "inferred_notes.tja"
         synthesize.create_tja(str(out_tja), song, song.don_timestamp, song.ka_timestamp)
-        log_event(f"Chart file written to {out_tja}")
+        log_event(f"Taiko chart (.tja) written to {out_tja}")
+
+        out_osu = INFERENCE_DIR / "inferred_notes.osu"
+        synthesize.export_osu(str(out_osu), song, song.don_timestamp, song.ka_timestamp)
+        log_event(f"osu! Taiko chart (.osu) written to {out_osu}")
+
+        out_sm = INFERENCE_DIR / "inferred_notes.sm"
+        synthesize.export_sm(str(out_sm), song, song.don_timestamp, song.ka_timestamp)
+        log_event(f"StepMania chart (.sm) written to {out_sm}")
 
     run_background_task("Synthesize Chart & Audio", do_synthesize)
     return {"status": "ok", "message": "Synthesis initiated"}
@@ -326,6 +338,20 @@ def download_tja():
     if path.exists():
         return FileResponse(path, media_type="text/plain", filename="inferred_notes.tja")
     return JSONResponse({"error": "Chart file not found"}, status_code=404)
+
+@app.get("/api/download/osu")
+def download_osu():
+    path = INFERENCE_DIR / "inferred_notes.osu"
+    if path.exists():
+        return FileResponse(path, media_type="text/plain", filename="inferred_notes.osu")
+    return JSONResponse({"error": "osu! chart file not found"}, status_code=404)
+
+@app.get("/api/download/sm")
+def download_sm():
+    path = INFERENCE_DIR / "inferred_notes.sm"
+    if path.exists():
+        return FileResponse(path, media_type="text/plain", filename="inferred_notes.sm")
+    return JSONResponse({"error": "StepMania chart file not found"}, status_code=404)
 
 @app.get("/api/download/sample_music")
 def download_sample_music():
@@ -782,6 +808,14 @@ def index_page():
           <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.8rem; color: var(--text-muted);">Taiko Sanjiro Chart File:</span>
             <a href="/api/download/tja" download class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .TJA</a>
+          </div>
+          <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">osu! Taiko Beatmap (.osu):</span>
+            <a href="/api/download/osu" download class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .OSU</a>
+          </div>
+          <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">StepMania Dance Chart (.sm):</span>
+            <a href="/api/download/sm" download class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .SM</a>
           </div>
         </div>
       </div>

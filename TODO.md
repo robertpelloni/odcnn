@@ -9,3 +9,5 @@
 - [x] Implement system tray controller `tray_app.py`.
 - [x] Add automated test suite `tests/test_pipeline.py`.
 - [x] Complete Playwright frontend testing and UI screenshot verification.
+- [x] Implement multi-format rhythm game chart exporters for osu! and StepMania (`chart_exporters.py`).
+- [x] Add dashboard download endpoints and buttons for `.osu` and `.sm` files.

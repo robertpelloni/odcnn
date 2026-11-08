@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 Version format follows Semantic Versioning sourced from `VERSION.md`.
 
+## [1.1.0] - 2026-06-24
+### Added
+- Multi-format chart exporters in `chart_exporters.py` for osu! Taiko (`.osu` Mode 1) and StepMania (`.sm` dance-single 4-panel).
+- API download endpoints `/api/download/osu` and `/api/download/sm` in `dashboard.py`.
+- Download buttons and interactive format management directly inside the unified dashboard.
+- Unit tests verifying multi-format chart exports in `tests/test_pipeline.py`.
+
 ## [1.0.0] - 2026-06-24
 ### Added
 - Standardized autonomous governance documentation: `VERSION.md`, `VISION.md`, `ROADMAP.md`, `TODO.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, `CHANGELOG.md`, `HANDOFF.md`.

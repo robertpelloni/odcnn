@@ -72,6 +72,31 @@ class TestODCNNPipeline(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("ODCNN AUTOPILOT STUDIO", response.text)
         self.assertIn("Step 3: Peak Picking & Taiko Chart Synthesis", response.text)
+        self.assertIn(".OSU", response.text)
+        self.assertIn(".SM", response.text)
+
+    def test_multi_format_chart_exporters(self):
+        """Test export_osu and export_sm file structure."""
+        from chart_exporters import export_osu, export_sm
+        class DummySong:
+            samplerate = 44100
+        song = DummySong()
+        don_ts = np.array([100, 200])
+        ka_ts = np.array([150, 250])
+
+        osu_file = "/tmp/test_chart.osu"
+        export_osu(osu_file, song, don_ts, ka_ts, title="Test Song", bpm=120)
+        with open(osu_file, "r") as f:
+            osu_content = f.read()
+        self.assertIn("Mode: 1", osu_content)
+        self.assertIn("[HitObjects]", osu_content)
+
+        sm_file = "/tmp/test_chart.sm"
+        export_sm(sm_file, song, don_ts, ka_ts, title="Test Song", bpm=120)
+        with open(sm_file, "r") as f:
+            sm_content = f.read()
+        self.assertIn("#TITLE:Test Song;", sm_content)
+        self.assertIn("#NOTES:", sm_content)
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,6 +4,7 @@ from scipy.signal import argrelmax
 from librosa.util import peak_pick
 from librosa.onset import onset_detect
 from music_processor import *
+from chart_exporters import export_osu, export_sm
 
 def detection(don_inference, ka_inference, song):
     """detects notes disnotesiresultg don and ka"""
@@ -80,4 +81,6 @@ if __name__ == "__main__":
 
     detection(don_inference, ka_inference, song)
     create_tja("./data/inference/inferred_notes.tja",song, song.don_timestamp, song.ka_timestamp)
+    export_osu("./data/inference/inferred_notes.osu", song, song.don_timestamp, song.ka_timestamp)
+    export_sm("./data/inference/inferred_notes.sm", song, song.don_timestamp, song.ka_timestamp)
 

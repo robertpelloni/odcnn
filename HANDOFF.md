@@ -5,6 +5,7 @@
 - Created standard governance documents (`VERSION.md`, `VISION.md`, `ROADMAP.md`, `TODO.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, `CHANGELOG.md`, `HANDOFF.md`).
 - Built unified, single-page consolidated Web Dashboard and desktop System Tray application.
 - Added comprehensive unit, integration, and Playwright verification tests.
+- Extended export capabilities with multi-format chart exporters for osu! (.osu) and StepMania (.sm).
 
 ## 2. Key Architecture & File Map
 - `dashboard.py`: FastAPI server serving the unified UI, live log streams, and REST API for preprocessing, training, inference, and synthesis.
