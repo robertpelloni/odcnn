@@ -16,6 +16,25 @@ from numba import jit, prange
 from sklearn.preprocessing import normalize
 
 
+class SafeUnpickler(pickle.Unpickler):
+    """
+    Handles unpickling of legacy pickled Audio objects that were saved when
+    music_processor.py was run directly as __main__.
+    """
+    def find_class(self, module, name):
+        if module == "__main__" and name == "Audio":
+            return Audio
+        return super().find_class(module, name)
+
+
+def safe_load_pickle(filepath_or_file):
+    """Safely loads pickled objects with __main__.Audio redirection."""
+    if isinstance(filepath_or_file, (str, os.PathLike)):
+        with open(filepath_or_file, "rb") as f:
+            return SafeUnpickler(f).load()
+    return SafeUnpickler(filepath_or_file).load()
+
+
 class Audio:
     """
     audio class which holds music data and timestamp for notes.

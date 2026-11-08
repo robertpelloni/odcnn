@@ -60,6 +60,13 @@ def run():
         mic_btn = page.locator("#btnToggleMic")
         assert mic_btn.is_visible()
 
+        # Test Model Architecture Selector (CNN vs CRNN)
+        arch_select = page.locator("#inferArch")
+        assert arch_select.is_visible()
+        arch_select.select_option("crnn")
+        assert arch_select.input_value() == "crnn"
+        print("Successfully selected CRNN architecture in studio")
+
         page.screenshot(path="/home/jules/verification/verification.png", full_page=True)
         print("Screenshot saved to /home/jules/verification/verification.png")
 

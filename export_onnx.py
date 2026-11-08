@@ -52,39 +52,59 @@ class ExportableCNN(nn.Module):
 def export_to_onnx(
     pth_path: Union[str, Path],
     onnx_path: Union[str, Path],
-    opset_version: int = 18
+    opset_version: int = 18,
+    arch: str = "cnn",
 ) -> str:
     """
     Exports a trained PyTorch .pth weight file to .onnx format.
+    Supports either standard CNN or modern CRNN architecture.
     """
     pth_path = Path(pth_path)
     onnx_path = Path(onnx_path)
     onnx_path.parent.mkdir(parents=True, exist_ok=True)
 
-    base_net = model.convNet()
-    if pth_path.exists():
-        state_dict = torch.load(pth_path, map_location="cpu")
-        base_net.load_state_dict(state_dict)
-
-    wrapper = ExportableCNN(base_net)
-    wrapper.eval()
-
-    # Input shape: [batch_size, 3 channels, 80 mel-bins, 15 time-frames]
-    dummy_input = torch.randn(1, 3, 80, 15, dtype=torch.float32)
-
-    torch.onnx.export(
-        wrapper,
-        dummy_input,
-        str(onnx_path),
-        export_params=True,
-        opset_version=opset_version,
-        do_constant_folding=True,
-        input_names=["spectrogram"],
-        output_names=["onset_prob"],
-        dynamic_shapes={
-            "x": {0: torch.export.Dim("batch_size")}
-        }
-    )
+    if arch.lower() == "crnn":
+        from model_crnn import CRNNOnsetMaxNet
+        target_model = CRNNOnsetMaxNet()
+        if pth_path.exists():
+            state_dict = torch.load(pth_path, map_location="cpu")
+            target_model.load_state_dict(state_dict)
+        target_model.eval()
+        wrapper = target_model
+        dummy_input = torch.randn(1, 3, 80, 15, dtype=torch.float32)
+        torch.onnx.export(
+            wrapper,
+            dummy_input,
+            str(onnx_path),
+            export_params=True,
+            opset_version=17,
+            do_constant_folding=True,
+            input_names=["spectrogram"],
+            output_names=["onset_prob"],
+            dynamic_axes={"spectrogram": {0: "batch_size"}, "onset_prob": {0: "batch_size"}},
+            dynamo=False,
+        )
+    else:
+        base_net = model.convNet()
+        if pth_path.exists():
+            state_dict = torch.load(pth_path, map_location="cpu")
+            base_net.load_state_dict(state_dict)
+        wrapper = ExportableCNN(base_net)
+        wrapper.eval()
+        dummy_input = torch.randn(1, 3, 80, 15, dtype=torch.float32)
+        torch.onnx.export(
+            wrapper,
+            dummy_input,
+            str(onnx_path),
+            export_params=True,
+            opset_version=opset_version,
+            do_constant_folding=True,
+            input_names=["spectrogram"],
+            output_names=["onset_prob"],
+            dynamic_shapes={
+                "x": {0: torch.export.Dim("batch_size")}
+            }
+        )
 
     return str(onnx_path)
 

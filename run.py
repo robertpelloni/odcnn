@@ -32,6 +32,7 @@ def main():
     # infer subcommand
     infer_parser = subparsers.add_parser("infer", help="Run neural inference on preprocessed audio features")
     infer_parser.add_argument("--target", choices=["don", "ka", "both"], default="both", help="Target model inference")
+    infer_parser.add_argument("--arch", choices=["cnn", "crnn"], default="cnn", help="Neural model architecture")
     infer_parser.add_argument("--engine", choices=["torch", "onnx"], default="torch", help="Execution engine")
 
     # synthesize subcommand
@@ -75,8 +76,8 @@ def main():
         import subprocess
         targets = ["don", "ka"] if args.target == "both" else [args.target]
         for t in targets:
-            print(f"Running inference for {t} using engine {args.engine}...")
-            subprocess.run([sys.executable, "infer.py", t], check=True)
+            print(f"Running inference for {t} using architecture {args.arch} and engine {args.engine}...")
+            subprocess.run([sys.executable, "infer.py", t, "--arch", args.arch], check=True)
 
     elif args.subcommand == "synthesize":
         import subprocess

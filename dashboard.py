@@ -220,37 +220,46 @@ def action_train(model_type: str = Form("don"), epochs: int = Form(10), batch_si
     return {"status": "ok", "message": f"Training {model_type} started"}
 
 @app.post("/api/action/infer")
-def action_infer(model_type: str = Form("both"), engine: str = Form("pytorch")):
+def action_infer(model_type: str = Form("both"), engine: str = Form("pytorch"), arch: str = Form("cnn")):
     if CURRENT_JOB["status"] == "running":
         return JSONResponse({"error": "Another job is already running"}, status_code=400)
 
     def do_infer():
-        log_event(f"Loading test song pickle (engine={engine.upper()})...")
-        with open(PICKLES_DIR / "test_data.pickle", "rb") as f:
-            song = pickle.load(f)
+        log_event(f"Loading test song pickle (arch={arch.upper()}, engine={engine.upper()})...")
+        song = music_processor.safe_load_pickle(PICKLES_DIR / "test_data.pickle")
 
         types_to_run = ["don", "ka"] if model_type == "both" else [model_type]
         for t in types_to_run:
             if engine == "onnx":
-                onnx_file = MODELS_DIR / f"{t}_model.onnx"
+                onnx_name = f"{t}_crnn.onnx" if arch == "crnn" else f"{t}_model.onnx"
+                onnx_file = MODELS_DIR / onnx_name
+                pth_file = MODELS_DIR / (f"{t}_crnn.pth" if arch == "crnn" else f"{t}_model.pth")
                 if not onnx_file.exists():
-                    log_event(f"Exporting {t.upper()} PyTorch weights to ONNX first...")
-                    export_onnx.export_to_onnx(MODELS_DIR / f"{t}_model.pth", onnx_file)
+                    log_event(f"Exporting {t.upper()} ({arch.upper()}) weights to ONNX first...")
+                    export_onnx.export_to_onnx(pth_file, onnx_file, arch=arch)
 
-                log_event(f"Running ONNX Runtime inference for {t.upper()}...")
+                log_event(f"Running ONNX Runtime inference for {t.upper()} ({arch.upper()})...")
                 detector = export_onnx.ONNXOnsetDetector(onnx_file)
                 inference = detector.infer(song.feats, minibatch=2048)
             else:
                 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-                net = model.convNet().to(device)
-                pth = MODELS_DIR / f"{t}_model.pth"
-                log_event(f"Loading PyTorch weights from {pth}...")
+                if arch == "crnn":
+                    import model_crnn
+                    net = model_crnn.CRNNOnsetMaxNet().to(device)
+                    pth = MODELS_DIR / f"{t}_crnn.pth"
+                    if not pth.exists():
+                        model_crnn.initialize_default_crnn_weights()
+                else:
+                    net = model.convNet().to(device)
+                    pth = MODELS_DIR / f"{t}_model.pth"
+
+                log_event(f"Loading {arch.upper()} weights from {pth}...")
                 if torch.cuda.is_available():
                     net.load_state_dict(torch.load(pth))
                 else:
                     net.load_state_dict(torch.load(pth, map_location="cpu"))
 
-                log_event(f"Running PyTorch inference for {t.upper()}...")
+                log_event(f"Running PyTorch inference for {t.upper()} ({arch.upper()})...")
                 inference = net.infer(song.feats, device, minibatch=2048)
                 inference = np.reshape(inference, (-1))
 
@@ -259,8 +268,8 @@ def action_infer(model_type: str = Form("both"), engine: str = Form("pytorch")):
                 pickle.dump(inference, f)
             log_event(f"Saved inference to {out_pickle}")
 
-    run_background_task(f"Inference ({model_type}/{engine})", do_infer)
-    return {"status": "ok", "message": f"Inference for {model_type} ({engine}) started"}
+    run_background_task(f"Inference ({model_type}/{arch}/{engine})", do_infer)
+    return {"status": "ok", "message": f"Inference for {model_type} ({arch}/{engine}) started"}
 
 @app.post("/api/action/export_onnx")
 def action_export_onnx(target: str = Form("both")):
@@ -1116,6 +1125,15 @@ def index_page():
               </select>
             </div>
             <div class="form-group">
+              <label>Model Architecture
+                <span class="tooltip-icon" title="Choose Standard CNN (Schlüter & Böck) or Modern CRNN with Attention.">?</span>
+              </label>
+              <select id="inferArch">
+                <option value="cnn">Standard CNN (Schlüter & Böck)</option>
+                <option value="crnn">Modern CRNN (CNN + BiGRU + Attention)</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label>Execution Engine
                 <span class="tooltip-icon" title="Choose PyTorch or portable ONNX Runtime.">?</span>
               </label>
@@ -1429,9 +1447,11 @@ def index_page():
     async function runInference() {
       const target = document.getElementById('inferTarget').value;
       const engine = document.getElementById('inferEngine').value;
+      const arch = document.getElementById('inferArch').value;
       const formData = new FormData();
       formData.append('model_type', target);
       formData.append('engine', engine);
+      formData.append('arch', arch);
       await fetch('/api/action/infer', { method: 'POST', body: formData });
       setTimeout(updateStatus, 500);
     }

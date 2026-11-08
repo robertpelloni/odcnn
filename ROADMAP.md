@@ -11,7 +11,6 @@
 ### Milestone 2: Multi-Model Architecture & General Rhythm Game Support (v1.2.0 - Completed)
 - [x] Support custom game chart formats: StepMania (.sm), osu! (.osu) Mode 1 Taiko.
 - [x] Support VR game chart formats: Beat Saber (.dat v2 schema).
-- [ ] Extend CNN architecture to modern Conformer or CRNN (Convolutional Recurrent Neural Network) backbones.
 - [ ] Add roll/slider (dendera/balloon) detection using sustained spectral energy analysis.
 
 ### Milestone 3: Portable Runtime & Microcontroller Integration (v1.3.0 - Completed)
@@ -45,7 +44,14 @@
 - [x] Dual synchronized timeline scrubbing across waveform, spectrogram, and audio playback.
 - [x] Automated unit testing and Playwright browser visual verification.
 
-### Milestone 9: Advanced Architectures & Embedded Integration (Future)
+### Milestone 9: Advanced Neural Architectures (v2.0.0 - Completed)
+- [x] Convolutional Recurrent Neural Network with temporal Multihead Rhythm Attention (`CRNNOnsetMaxNet` in `model_crnn.py`).
+- [x] Bi-directional GRU recurrent layer for context-aware sequence modeling across onset frames.
+- [x] Multihead temporal attention mechanism weighting rhythmic anticipation.
+- [x] Dual model architecture support (`cnn` vs. `crnn`) across pipeline (`infer.py`, `dashboard.py`, `run.py`, `export_onnx.py`).
+- [x] Dynamic batch axis ONNX export and ONNX Runtime execution for CRNN architectures.
+
+### Milestone 10: Embedded Integration & Future Expansion (Next)
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
-- [ ] Conformer / CRNN architectures for joint rhythm & pitch contour estimation.
+- [ ] BPM tap tempo & beat grid snapping tool for chart editing.

@@ -20,4 +20,7 @@
 - [x] Add real-time microphone/line-in PortAudio / WebAudio stream input for live onset inference via `/ws/stream`.
 - [x] Add interactive waveform canvas scrubbing with visual onset markers.
 - [x] Add spectrogram frequency heatmap canvas visualizer.
+- [x] Implement CRNN + Multihead Rhythm Attention architecture (`model_crnn.py`).
+- [x] Add architecture selection (`cnn` vs. `crnn`) across pipeline (`infer.py`, `dashboard.py`, `run.py`, `export_onnx.py`).
+- [x] Export CRNN to ONNX format and verify ONNX Runtime inference.
 - [ ] Add BPM tap tempo & beat grid snapping tool.

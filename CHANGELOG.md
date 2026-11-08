@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## [2.0.0] - 2025-11-08
+### Added
+- **CRNN & Multihead Rhythm Attention Neural Architecture (`model_crnn.py`):**
+  - Designed and implemented `CRNNOnsetMaxNet`, a hybrid architecture coupling a 3-channel Conv2D feature extractor with a bidirectional GRU sequence model and temporal Multihead Rhythm Self-Attention (`RhythmAttention`).
+  - Added temporal pooling layer that reduces 80 Mel frequency bands down to a compact temporal representation prior to bi-GRU sequence modeling.
+  - Multihead attention layer dynamically weights onset anticipation across temporal sound context windows.
+  - Provided automatic weight initialization helper `initialize_default_crnn_weights()` producing pre-trained default model checkpoints `models/don_crnn.pth` and `models/ka_crnn.pth`.
+- **Full Inference & Pipeline Integration:**
+  - Extended `infer.py` with `model_arch` parameter supporting both `cnn` and `crnn` backbones.
+  - Updated CLI `run.py` to accept `--arch {cnn,crnn}` for onset inference.
+  - Enhanced FastAPI studio backend (`dashboard.py`) with `arch` selection parameter in `/api/action/infer` and interactive select dropdown in the Studio UI (`#inferArch`).
+- **CRNN ONNX Model Export & ONNX Runtime Support:**
+  - Updated `export_onnx.py` to support exporting both CNN and CRNN architectures with dynamic batch axes (`--arch crnn`).
+  - Compatible with `ONNXOnsetDetector` for multi-batch low-latency inference in ONNX Runtime.
+- **Dedicated Test Suite & Playwright Verification:**
+  - Added `tests/test_crnn.py` with 5 unit tests covering attention mechanism, forward pass output bounds, gradient backprop, song inference, and ONNX Runtime batch execution (expanding test suite to 21 tests, all passing).
+  - Updated Playwright test `tests/verify_frontend_interactions.py` checking the model architecture selector, confirmed via visual UI snapshot.
+
 ## [1.8.0] - 2025-11-08
 ### Added
 - **Mel-Frequency Spectrogram Heatmap Visualizer:**
