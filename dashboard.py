@@ -29,6 +29,7 @@ import uvicorn
 import model
 import music_processor
 import synthesize
+import export_onnx
 
 # Global paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -115,6 +116,8 @@ def get_status():
     has_train_pickle = (PICKLES_DIR / "train_reduced.pickle").exists() or (PICKLES_DIR / "train_data.pickle").exists()
     has_don_model = (MODELS_DIR / "don_model.pth").exists()
     has_ka_model = (MODELS_DIR / "ka_model.pth").exists()
+    has_don_onnx = (MODELS_DIR / "don_model.onnx").exists()
+    has_ka_onnx = (MODELS_DIR / "ka_model.onnx").exists()
     has_don_infer = (PICKLES_DIR / "don_inference.pickle").exists()
     has_ka_infer = (PICKLES_DIR / "ka_inference.pickle").exists()
     has_synthesized_wav = (INFERENCE_DIR / "inferred_music.wav").exists()
@@ -138,6 +141,8 @@ def get_status():
             "train_pickle": has_train_pickle,
             "don_model": has_don_model,
             "ka_model": has_ka_model,
+            "don_onnx": has_don_onnx,
+            "ka_onnx": has_ka_onnx,
             "don_inference": has_don_infer,
             "ka_inference": has_ka_infer,
             "synthesized_wav": has_synthesized_wav,
@@ -212,37 +217,64 @@ def action_train(model_type: str = Form("don"), epochs: int = Form(10), batch_si
     return {"status": "ok", "message": f"Training {model_type} started"}
 
 @app.post("/api/action/infer")
-def action_infer(model_type: str = Form("both")):
+def action_infer(model_type: str = Form("both"), engine: str = Form("pytorch")):
     if CURRENT_JOB["status"] == "running":
         return JSONResponse({"error": "Another job is already running"}, status_code=400)
 
     def do_infer():
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        log_event("Loading test song pickle...")
+        log_event(f"Loading test song pickle (engine={engine.upper()})...")
         with open(PICKLES_DIR / "test_data.pickle", "rb") as f:
             song = pickle.load(f)
 
         types_to_run = ["don", "ka"] if model_type == "both" else [model_type]
         for t in types_to_run:
-            net = model.convNet().to(device)
-            pth = MODELS_DIR / f"{t}_model.pth"
-            log_event(f"Loading weights from {pth}...")
-            if torch.cuda.is_available():
-                net.load_state_dict(torch.load(pth))
-            else:
-                net.load_state_dict(torch.load(pth, map_location="cpu"))
+            if engine == "onnx":
+                onnx_file = MODELS_DIR / f"{t}_model.onnx"
+                if not onnx_file.exists():
+                    log_event(f"Exporting {t.upper()} PyTorch weights to ONNX first...")
+                    export_onnx.export_to_onnx(MODELS_DIR / f"{t}_model.pth", onnx_file)
 
-            log_event(f"Running inference for {t.upper()}...")
-            inference = net.infer(song.feats, device, minibatch=2048)
-            inference = np.reshape(inference, (-1))
+                log_event(f"Running ONNX Runtime inference for {t.upper()}...")
+                detector = export_onnx.ONNXOnsetDetector(onnx_file)
+                inference = detector.infer(song.feats, minibatch=2048)
+            else:
+                device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+                net = model.convNet().to(device)
+                pth = MODELS_DIR / f"{t}_model.pth"
+                log_event(f"Loading PyTorch weights from {pth}...")
+                if torch.cuda.is_available():
+                    net.load_state_dict(torch.load(pth))
+                else:
+                    net.load_state_dict(torch.load(pth, map_location="cpu"))
+
+                log_event(f"Running PyTorch inference for {t.upper()}...")
+                inference = net.infer(song.feats, device, minibatch=2048)
+                inference = np.reshape(inference, (-1))
 
             out_pickle = PICKLES_DIR / f"{t}_inference.pickle"
             with open(out_pickle, "wb") as f:
                 pickle.dump(inference, f)
             log_event(f"Saved inference to {out_pickle}")
 
-    run_background_task(f"Inference ({model_type})", do_infer)
-    return {"status": "ok", "message": f"Inference for {model_type} started"}
+    run_background_task(f"Inference ({model_type}/{engine})", do_infer)
+    return {"status": "ok", "message": f"Inference for {model_type} ({engine}) started"}
+
+@app.post("/api/action/export_onnx")
+def action_export_onnx(target: str = Form("both")):
+    if CURRENT_JOB["status"] == "running":
+        return JSONResponse({"error": "Another job is already running"}, status_code=400)
+
+    def do_export():
+        targets = ["don", "ka"] if target == "both" else [target]
+        for t in targets:
+            pth = MODELS_DIR / f"{t}_model.pth"
+            onnx_path = MODELS_DIR / f"{t}_model.onnx"
+            log_event(f"Exporting {pth} to {onnx_path}...")
+            export_onnx.export_to_onnx(pth, onnx_path)
+            log_event(f"ONNX graph exported for {t.upper()}")
+
+    run_background_task(f"Export ONNX ({target})", do_export)
+    return {"status": "ok", "message": f"ONNX export initiated for {target}"}
 
 @app.post("/api/action/synthesize")
 def action_synthesize(
@@ -848,20 +880,36 @@ def index_page():
         </div>
 
         <form id="inferForm" onsubmit="event.preventDefault(); runInference();">
-          <div class="form-group">
-            <label>Inference Target Models
-              <span class="tooltip-icon" title="Select whether to infer Don (red notes), Ka (blue rimshots), or both.">?</span>
-            </label>
-            <select id="inferTarget">
-              <option value="both">Both Models (Don + Ka Full Charting)</option>
-              <option value="don">Don (Bass/Center Drum Only)</option>
-              <option value="ka">Ka (Rimshot/Edge Drum Only)</option>
-            </select>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>Inference Target Models
+                <span class="tooltip-icon" title="Select whether to infer Don (red notes), Ka (blue rimshots), or both.">?</span>
+              </label>
+              <select id="inferTarget">
+                <option value="both">Both Models (Don + Ka)</option>
+                <option value="don">Don (Bass/Center Drum)</option>
+                <option value="ka">Ka (Rimshot/Edge Drum)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Execution Engine
+                <span class="tooltip-icon" title="Choose PyTorch or portable ONNX Runtime.">?</span>
+              </label>
+              <select id="inferEngine">
+                <option value="pytorch">PyTorch (Torch Script)</option>
+                <option value="onnx">ONNX Runtime (High Throughput)</option>
+              </select>
+            </div>
           </div>
 
-          <button type="submit" class="btn btn-secondary" id="btnInfer">
-            🚀 Run Neural Inference on Song
-          </button>
+          <div style="display: flex; gap: 8px;">
+            <button type="submit" class="btn btn-secondary" id="btnInfer">
+              🚀 Run Neural Inference
+            </button>
+            <button type="button" class="btn-quit" onclick="runExportONNX()" style="white-space: nowrap; padding: 0 12px;" title="Export PyTorch models to ONNX graphs">
+              ⚡ Export ONNX
+            </button>
+          </div>
         </form>
 
         <div class="audio-player-box" style="margin-top: 1.5rem;">
@@ -1041,9 +1089,19 @@ def index_page():
 
     async function runInference() {
       const target = document.getElementById('inferTarget').value;
+      const engine = document.getElementById('inferEngine').value;
       const formData = new FormData();
       formData.append('model_type', target);
+      formData.append('engine', engine);
       await fetch('/api/action/infer', { method: 'POST', body: formData });
+      setTimeout(updateStatus, 500);
+    }
+
+    async function runExportONNX() {
+      const target = document.getElementById('inferTarget').value;
+      const formData = new FormData();
+      formData.append('target', target);
+      await fetch('/api/action/export_onnx', { method: 'POST', body: formData });
       setTimeout(updateStatus, 500);
     }
 

@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [1.3.0] - 2025-11-08
+### Added
+- **ONNX Model Exporter & Inference Runtime (`export_onnx.py`):**
+  - Added `export_to_onnx()` converting PyTorch CNN weights to standardized ONNX graphs (`don_model.onnx`, `ka_model.onnx`).
+  - Implemented `ONNXOnsetDetector` using ONNX Runtime for low-latency, CPU-optimized batch inference.
+- **Dashboard Dual-Engine Support:**
+  - Added Execution Engine selector (PyTorch vs. ONNX Runtime) in the unified web studio.
+  - Added direct `/api/action/export_onnx` endpoint and "Export ONNX" action button.
+- **Unit Testing:**
+  - Added unit test `test_onnx_export_and_runtime` verifying ONNX graph export, shape matching, and probability output ranges.
+
 ## [1.2.0] - 2025-11-08
 ### Added
 - **Beat Saber Exporter (.dat v2 schema):** Automated generation of Beat Saber difficulty chart files mapping Don (Red saber, bottom layer down cut) and Ka (Blue saber, middle layer up cut) with quantized beat timestamps.

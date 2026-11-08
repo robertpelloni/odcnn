@@ -8,13 +8,15 @@
 - [x] Implement system tray controller with server start/stop and quit capabilities.
 - [x] Implement automated end-to-end testing and frontend verification.
 
-### Milestone 2: Multi-Model Architecture & General Rhythm Game Support (v1.2.0 - Current)
+### Milestone 2: Multi-Model Architecture & General Rhythm Game Support (v1.2.0 - Completed)
 - [x] Support custom game chart formats: StepMania (.sm), osu! (.osu) Mode 1 Taiko.
 - [x] Support VR game chart formats: Beat Saber (.dat v2 schema).
 - [ ] Extend CNN architecture to modern Conformer or CRNN (Convolutional Recurrent Neural Network) backbones.
 - [ ] Add roll/slider (dendera/balloon) detection using sustained spectral energy analysis.
 
-### Milestone 3: Real-Time Stream Ingestion & Microcontroller Integration (v1.3.0)
+### Milestone 3: Portable Runtime & Microcontroller Integration (v1.3.0 - Current)
+- [x] Export PyTorch CNN to standardized ONNX graphs (`export_onnx.py`).
+- [x] Support ONNX Runtime engine execution directly inside the dashboard studio.
+- [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] Live microphone and line-in onset detection via PortAudio / PyAudio streams.
-- [ ] Low-latency C++/Rust ONNX Runtime export for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser.

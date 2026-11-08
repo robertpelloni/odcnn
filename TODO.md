@@ -12,4 +12,6 @@
 - [x] Implement multi-format rhythm game chart exporters for osu! and StepMania (`chart_exporters.py`).
 - [x] Add dashboard download endpoints and buttons for `.osu` and `.sm` files.
 - [x] Implement Beat Saber exporter (`export_beat_saber`) in `chart_exporters.py` and UI download.
+- [x] Implement ONNX export and ONNX Runtime inference engine (`export_onnx.py`).
+- [x] Integrate dual inference engines (PyTorch & ONNX Runtime) in `dashboard.py`.
 - [ ] Add real-time microphone stream input for live onset inference.

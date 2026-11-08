@@ -14,3 +14,6 @@ psutil
 python-multipart
 jinja2
 httpx
+onnx
+onnxruntime
+onnxscript

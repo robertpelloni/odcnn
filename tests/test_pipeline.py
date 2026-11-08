@@ -114,5 +114,22 @@ class TestODCNNPipeline(unittest.TestCase):
         self.assertIn("_type", first_note)
         self.assertIn("_cutDirection", first_note)
 
+    def test_onnx_export_and_runtime(self):
+        """Test ONNX export and ONNX Runtime inference detector."""
+        import export_onnx
+        pth_path = Path("models/don_model.pth")
+        if pth_path.exists():
+            test_onnx = Path("/tmp/test_don.onnx")
+            export_onnx.export_to_onnx(pth_path, test_onnx)
+            self.assertTrue(test_onnx.exists())
+
+            detector = export_onnx.ONNXOnsetDetector(test_onnx)
+            # Create synthetic feats: [3, 80, 30]
+            dummy_feats = np.random.randn(3, 80, 30).astype(np.float32)
+            res = detector.infer(dummy_feats, soundlen=15, minibatch=8)
+            # Total frames = 30 - 15 = 15
+            self.assertEqual(len(res), 15)
+            self.assertTrue(np.all(res >= 0.0) and np.all(res <= 1.0))
+
 if __name__ == "__main__":
     unittest.main()
