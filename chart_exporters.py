@@ -3,12 +3,14 @@ Multi-format Rhythm Game Chart Exporters.
 Provides automated export from ODCNN detected onsets into:
 1. osu! Taiko (.osu Mode 1)
 2. StepMania (.sm)
-3. Taiko no Tatsujin (.tja)
+3. Beat Saber (.dat v2 schema)
+4. Taiko no Tatsujin (.tja)
 """
 
+import json
 import numpy as np
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 def export_osu(
     filename: str,
@@ -171,5 +173,67 @@ def export_sm(
     Path(filename).parent.mkdir(parents=True, exist_ok=True)
     with open(filename, "w", encoding="utf-8") as f:
         f.write(content)
+
+    return filename
+
+
+def export_beat_saber(
+    filename: str,
+    song,
+    don_timestamp: np.ndarray,
+    ka_timestamp: np.ndarray,
+    bpm: float = 120.0
+) -> str:
+    """
+    Exports detected onsets to Beat Saber format (.dat v2 schema).
+    _time: float (beat timestamp)
+    _lineIndex: 0-3 (horizontal lane, 0=left, 1=inner-left, 2=inner-right, 3=right)
+    _lineLayer: 0-2 (vertical layer, 0=bottom, 1=middle, 2=top)
+    _type: 0 (Left / Red Saber), 1 (Right / Blue Saber)
+    _cutDirection: 0=Up, 1=Down, 2=Left, 3=Right, 8=Any
+    """
+    sec_per_beat = 60.0 / bpm
+
+    don_sec = don_timestamp * 512 / song.samplerate
+    ka_sec = ka_timestamp * 512 / song.samplerate
+
+    notes: List[Dict[str, Any]] = []
+
+    # Map Don to Red Saber (Type 0, Lane 1, Bottom Layer 0, Cut Down 1)
+    for t in don_sec:
+        beat = round(t / sec_per_beat, 3)
+        notes.append({
+            "_time": beat,
+            "_lineIndex": 1,
+            "_lineLayer": 0,
+            "_type": 0,
+            "_cutDirection": 1
+        })
+
+    # Map Ka to Blue Saber (Type 1, Lane 2, Middle Layer 1, Cut Up 0)
+    for t in ka_sec:
+        beat = round(t / sec_per_beat, 3)
+        notes.append({
+            "_time": beat,
+            "_lineIndex": 2,
+            "_lineLayer": 1,
+            "_type": 1,
+            "_cutDirection": 0
+        })
+
+    # Sort notes by beat timestamp
+    notes.sort(key=lambda n: n["_time"])
+
+    beat_saber_data = {
+        "_version": "2.2.0",
+        "_events": [],
+        "_notes": notes,
+        "_obstacles": [],
+        "_waypoints": []
+    }
+
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(beat_saber_data, f, indent=2)
 
     return filename

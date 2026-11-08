@@ -121,6 +121,7 @@ def get_status():
     has_synthesized_tja = (INFERENCE_DIR / "inferred_notes.tja").exists()
     has_synthesized_osu = (INFERENCE_DIR / "inferred_notes.osu").exists()
     has_synthesized_sm = (INFERENCE_DIR / "inferred_notes.sm").exists()
+    has_synthesized_dat = (INFERENCE_DIR / "inferred_notes.dat").exists()
 
     with open(BASE_DIR / "VERSION.md", "r") as vf:
         version_str = vf.read().strip()
@@ -143,6 +144,7 @@ def get_status():
             "synthesized_tja": has_synthesized_tja,
             "synthesized_osu": has_synthesized_osu,
             "synthesized_sm": has_synthesized_sm,
+            "synthesized_dat": has_synthesized_dat,
         }
     }
 
@@ -313,6 +315,10 @@ def action_synthesize(
         synthesize.export_sm(str(out_sm), song, song.don_timestamp, song.ka_timestamp)
         log_event(f"StepMania chart (.sm) written to {out_sm}")
 
+        out_dat = INFERENCE_DIR / "inferred_notes.dat"
+        synthesize.export_beat_saber(str(out_dat), song, song.don_timestamp, song.ka_timestamp)
+        log_event(f"Beat Saber chart (.dat) written to {out_dat}")
+
     run_background_task("Synthesize Chart & Audio", do_synthesize)
     return {"status": "ok", "message": "Synthesis initiated"}
 
@@ -352,6 +358,13 @@ def download_sm():
     if path.exists():
         return FileResponse(path, media_type="text/plain", filename="inferred_notes.sm")
     return JSONResponse({"error": "StepMania chart file not found"}, status_code=404)
+
+@app.get("/api/download/beatsaber")
+def download_beatsaber():
+    path = INFERENCE_DIR / "inferred_notes.dat"
+    if path.exists():
+        return FileResponse(path, media_type="application/json", filename="inferred_notes.dat")
+    return JSONResponse({"error": "Beat Saber chart file not found"}, status_code=404)
 
 @app.get("/api/download/sample_music")
 def download_sample_music():
@@ -816,6 +829,10 @@ def index_page():
           <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 0.8rem; color: var(--text-muted);">StepMania Dance Chart (.sm):</span>
             <a href="/api/download/sm" download class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .SM</a>
+          </div>
+          <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Beat Saber Track (.dat):</span>
+            <a href="/api/download/beatsaber" download class="btn-quit" style="text-decoration: none; padding: 3px 8px;">Download .DAT</a>
           </div>
         </div>
       </div>

@@ -11,3 +11,5 @@
 - [x] Complete Playwright frontend testing and UI screenshot verification.
 - [x] Implement multi-format rhythm game chart exporters for osu! and StepMania (`chart_exporters.py`).
 - [x] Add dashboard download endpoints and buttons for `.osu` and `.sm` files.
+- [x] Implement Beat Saber exporter (`export_beat_saber`) in `chart_exporters.py` and UI download.
+- [ ] Add real-time microphone stream input for live onset inference.

@@ -1,26 +1,29 @@
 # CHANGELOG
 
-All notable changes to this project are documented here.
-Version format follows Semantic Versioning sourced from `VERSION.md`.
-
-## [1.1.0] - 2026-06-24
+## [1.2.0] - 2025-11-08
 ### Added
-- Multi-format chart exporters in `chart_exporters.py` for osu! Taiko (`.osu` Mode 1) and StepMania (`.sm` dance-single 4-panel).
-- API download endpoints `/api/download/osu` and `/api/download/sm` in `dashboard.py`.
-- Download buttons and interactive format management directly inside the unified dashboard.
-- Unit tests verifying multi-format chart exports in `tests/test_pipeline.py`.
+- **Beat Saber Exporter (.dat v2 schema):** Automated generation of Beat Saber difficulty chart files mapping Don (Red saber, bottom layer down cut) and Ka (Blue saber, middle layer up cut) with quantized beat timestamps.
+- **Beat Saber Dashboard Download:** Added `/api/download/beatsaber` endpoint and web UI download button with descriptive tooltips.
+- **Extended Test Suite:** Added unit test coverage for Beat Saber `.dat` JSON schema and note layout.
 
-## [1.0.0] - 2026-06-24
+## [1.1.0] - 2025-11-08
 ### Added
-- Standardized autonomous governance documentation: `VERSION.md`, `VISION.md`, `ROADMAP.md`, `TODO.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, `CHANGELOG.md`, `HANDOFF.md`.
-- Unified single-page web dashboard (`dashboard.py`) built with FastAPI, real-time logging, interactive controls, audio synthesis, and chart export.
-- Desktop System Tray controller (`tray_app.py`) for background server management.
-- Comprehensive end-to-end test suite (`tests/test_pipeline.py`) validating all signal processing, model inference, and API endpoints.
+- **Multi-Format Rhythm Game Chart Exporters (`chart_exporters.py`):**
+  - **osu! Taiko (.osu Mode 1):** Full timing point and hitObject generation mapping Don to normal hitsounds and Ka to whistle/clap hitsounds.
+  - **StepMania (.sm):** Quantized 16th-note measure generation for dance-single charts mapping Don to Left+Right and Ka to Up+Down.
+- **Dashboard Multi-Format Integration:** Added download buttons and direct endpoints (`/api/download/osu`, `/api/download/sm`) in the Studio UI.
+- **Unit Tests:** Extended pipeline tests in `tests/test_pipeline.py` with multi-format chart verification.
 
-### Changed
-- Modernized `music_processor.py` to use keyword arguments for `librosa.filters.mel`.
-- Updated `music_processor.py` to support `scipy.signal.windows.blackmanharris`.
-- Removed unsupported Numba nopython object decoration in `multi_fft_and_melscale`.
-- Updated `model.py` to use `torch.sigmoid` instead of deprecated `F.sigmoid`.
-- Modernized `synthesize.py` to use keyword arguments for `librosa.util.peak_pick`.
-- Updated `requirement.txt` with all necessary packages.
+## [1.0.0] - 2025-11-08
+### Added
+- **Unified Single-Page Dashboard (`dashboard.py`):** Complete end-to-end studio for Mel-spectrogram preprocessing, CNN training (Don/Ka), neural onset inference, peak picking, and audio/chart synthesis.
+- **System Tray Controller (`tray_app.py`):** Desktop tray controller for background server lifecycle control, browser launching, and clean shutdown.
+- **Automated Test Suite (`tests/test_pipeline.py`):** Model forward pass, signal smoothing, peak picking, and dashboard API testing.
+- **Governance & Standards Documentation:** Initialized `VERSION.md`, `ROADMAP.md`, `TODO.md`, `VISION.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, and `HANDOFF.md`.
+
+### Fixed
+- Modernized `librosa.util.peak_pick` in `synthesize.py` with explicit keyword arguments (`pre_max`, `post_max`, `pre_avg`, `post_avg`, `delta`, `wait`).
+- Resolved `scipy.signal.blackmanharris` deprecation in `music_processor.py` by transitioning to `scipy.signal.windows.blackmanharris`.
+- Fixed Librosa mel filterbank keyword arguments in `music_processor.py`.
+- Replaced deprecated `torch.nn.functional.sigmoid` with `torch.sigmoid` in `model.py`.
+- Removed unsupported Numba `@jit` decorators on Python `Audio` class objects in `music_processor.py`.

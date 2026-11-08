@@ -1,18 +1,27 @@
-# Session Handoff & Continuity Notes
+# HANDOFF: Session Memory & Operational Status
 
-## 1. Session Overview
-- Modernized legacy Python/PyTorch/Librosa code to support modern versions without crashes.
-- Created standard governance documents (`VERSION.md`, `VISION.md`, `ROADMAP.md`, `TODO.md`, `MEMORY.md`, `DEPLOY.md`, `IDEAS.md`, `CHANGELOG.md`, `HANDOFF.md`).
-- Built unified, single-page consolidated Web Dashboard and desktop System Tray application.
-- Added comprehensive unit, integration, and Playwright verification tests.
-- Extended export capabilities with multi-format chart exporters for osu! (.osu) and StepMania (.sm).
+## Current System State (v1.2.0)
+- **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, and SciPy 1.14+.
+- **Unified Web Studio:** Running on `http://0.0.0.0:8000` via FastAPI (`dashboard.py`).
+- **Desktop System Tray Controller:** Implemented in `tray_app.py` for headless background server management.
+- **Rhythm Game Exporters (`chart_exporters.py`):**
+  - Taiko no Tatsujin (`.tja`)
+  - osu! Taiko Mode 1 (`.osu`)
+  - StepMania Dance Single (`.sm`)
+  - Beat Saber (`.dat` v2 schema)
+- **Automated Tests:** 7/7 unit tests passing via `python3 -m unittest discover tests`.
+- **Frontend Verification:** Screenshot verified with Playwright at `tests/dashboard_screenshot.png`.
 
-## 2. Key Architecture & File Map
-- `dashboard.py`: FastAPI server serving the unified UI, live log streams, and REST API for preprocessing, training, inference, and synthesis.
-- `tray_app.py`: System tray manager with server status and graceful shutdown options.
-- `model.py`, `music_processor.py`, `synthesize.py`, `infer.py`: Core signal processing, CNN modeling, and chart synthesis pipelines.
-- `data/`: Sample test tracks, reduced training dataset, models, and pickled features.
+## File Reference & Structure
+- `synthesize.py`: Signal smoothing, multi-parameter peak picking, Taiko audio synthesis, and multi-format chart generation.
+- `music_processor.py`: STFT and Mel-frequency filterbank feature extraction.
+- `model.py`: Schlüter & Böck CNN architecture for onset probabilities.
+- `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber.
+- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, and actions.
+- `tray_app.py`: System tray manager with desktop process management and shutdown.
+- `tests/test_pipeline.py`: Comprehensive test suite.
+- `VERSION.md`: Sourced single version string (`1.2.0`).
 
-## 3. Next Steps for Successor Models
-- Continue expanding browser-based visual chart editing.
-- Benchmark inference performance and explore ONNX runtime optimization.
+## Next Suggested Architectural Work
+- Integrate live streaming microphone input (PortAudio/WebAudio) for zero-latency real-time onset detection.
+- Add ONNX model export for embedded and mobile deployment.

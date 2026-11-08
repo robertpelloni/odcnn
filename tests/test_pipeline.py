@@ -76,8 +76,9 @@ class TestODCNNPipeline(unittest.TestCase):
         self.assertIn(".SM", response.text)
 
     def test_multi_format_chart_exporters(self):
-        """Test export_osu and export_sm file structure."""
-        from chart_exporters import export_osu, export_sm
+        """Test export_osu, export_sm, and export_beat_saber file structure."""
+        from chart_exporters import export_osu, export_sm, export_beat_saber
+        import json
         class DummySong:
             samplerate = 44100
         song = DummySong()
@@ -97,6 +98,21 @@ class TestODCNNPipeline(unittest.TestCase):
             sm_content = f.read()
         self.assertIn("#TITLE:Test Song;", sm_content)
         self.assertIn("#NOTES:", sm_content)
+
+        dat_file = "/tmp/test_chart.dat"
+        export_beat_saber(dat_file, song, don_ts, ka_ts, bpm=120)
+        with open(dat_file, "r") as f:
+            bs_data = json.load(f)
+        self.assertEqual(bs_data["_version"], "2.2.0")
+        self.assertIn("_notes", bs_data)
+        self.assertEqual(len(bs_data["_notes"]), 4)
+        # Check note keys
+        first_note = bs_data["_notes"][0]
+        self.assertIn("_time", first_note)
+        self.assertIn("_lineIndex", first_note)
+        self.assertIn("_lineLayer", first_note)
+        self.assertIn("_type", first_note)
+        self.assertIn("_cutDirection", first_note)
 
 if __name__ == "__main__":
     unittest.main()
