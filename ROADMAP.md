@@ -63,7 +63,16 @@
 - [x] Synthesis pipeline generation (`inferred_notes.mid`) and `/api/download/midi` download endpoint in FastAPI Studio.
 - [x] Studio UI "Download .MID" button and unit test / Playwright integration verification.
 
-### Milestone 12: Embedded Integration & Audio Stems (Next)
-- [ ] Dynamic multi-channel audio stems separation prior to onset feature extraction.
+### Milestone 12: Dynamic Audio Stems & Spectral Filtering Engine (v2.3.0 - Completed)
+- [x] Pure-Python / NumPy / SciPy zero-dependency Harmonic-Percussive Source Separation (HPSS) using 2D median filtering across STFT frames (`stem_separator.py`).
+- [x] Vertical transient percussive extraction isolating kick, snare, cymbals, and percussive rhythm attacks.
+- [x] Horizontal harmonic extraction isolating melodic lines, tonal synths, basslines, and vocals.
+- [x] 3-Band sub-band Butterworth spectral filter separation (Bass < 250Hz, Mid 250Hz-2.5kHz, Treble > 2.5kHz).
+- [x] Unified Studio REST API (`/api/stems/extract`, `/api/stems/status`, `/api/download/stem/{type}`).
+- [x] Interactive Studio UI card with audio source selection, status badge, independent HTML5 audio preview players, and download buttons.
+- [x] Automated unit test suite and Playwright browser verification.
+
+### Milestone 13: Embedded Integration & Edge Audio Inference (Next)
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
+- [ ] Sustained roll/balloon detection using harmonic spectral energy continuity.

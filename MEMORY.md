@@ -1,6 +1,10 @@
 # Codebase Architectural Memory & Observations
 
 ## Codebase Structure
+- `stem_separator.py`: Pure-Python zero-dependency Harmonic-Percussive Source Separation (HPSS) and 3-band sub-band Butterworth spectral filter engine.
+  - `separate_hpss(audio, sr, n_fft, hop_length, kernel_harm, kernel_perc, power)`: Computes STFT magnitude spectrogram, applies 2D median filtering across horizontal (time) and vertical (frequency) directions to derive soft spectral masks ($M_H = \frac{H^\gamma}{H^\gamma + P^\gamma + \epsilon}$, $M_P = \frac{P^\gamma}{H^\gamma + P^\gamma + \epsilon}$), and reconstructs phase-accurate time-domain signals via ISTFT.
+  - `separate_subbands(audio, sr, cutoff_low, cutoff_high, order)`: 3-band Butterworth filtering isolating Bass (< 250 Hz), Mid (250 Hz - 2.5 kHz), and Treble (> 2.5 kHz).
+  - `extract_and_save_stems(...)`: High-level extraction pipeline outputting 16-bit WAV files to `data/stems/`.
 - `chart_exporters.py`: Multi-format exporters for osu! Taiko, StepMania, Beat Saber, Standard MIDI Files (SMF Type 0), and beat grid quantizer `quantize_timestamps_to_grid()`.
   - `export_midi(timestamps_don, timestamps_ka, output_path, bpm, track_name)`: Zero-dependency pure-Python binary SMF Type 0 generator with variable-length quantity (VLQ) delta-time encoding, microsecond tempo events, and General MIDI Percussion Channel 10 mappings (Don = 36 Bass Drum 1, Ka = 38 Acoustic Snare).
 - `model_crnn.py`: Hybrid Convolutional Recurrent Neural Network with temporal Multihead Rhythm Attention (`CRNNOnsetMaxNet`, `RhythmAttention`).

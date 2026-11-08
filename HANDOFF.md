@@ -1,7 +1,14 @@
 # HANDOFF: Session Memory & Operational Status
 
-## Current System State (v2.2.0)
+## Current System State (v2.3.0)
 - **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
+- **Dynamic Multi-Stem Audio Separation Engine (`stem_separator.py`):**
+  - Pure-Python zero-dependency Harmonic-Percussive Source Separation (HPSS) algorithm using 2D median filtering across STFT frames (`separate_hpss`).
+  - Separates transient vertical percussive attacks (drums, kicks, snares, cymbals) from tonal horizontal harmonic content (synth, basslines, vocals) using soft spectral masking.
+  - 3-band sub-band Butterworth spectral filter separation (`separate_subbands`) isolating Bass (< 250 Hz), Mid (250 Hz - 2.5 kHz), and Treble (> 2.5 kHz).
+  - High-level pipeline `extract_and_save_stems()` saving 16-bit WAV files (`stem_percussive.wav`, `stem_harmonic.wav`, `stem_bass.wav`, `stem_treble.wav`) to `data/stems/`.
+  - FastAPI Studio endpoints: `POST /api/stems/extract`, `GET /api/stems/status`, and `GET /api/download/stem/{type}`.
+  - Interactive Studio card: "🎛️ Dynamic Audio Stems & Harmonic/Percussive Separator" (`#stemsCard`) with track source selector, extraction trigger, real-time status badge, and independent HTML5 audio preview players and download buttons for percussive and harmonic stems.
 - **Standard MIDI File (SMF Type 0) Exporter (`chart_exporters.py` & `synthesize.py`):**
   - Standalone, zero-dependency pure-Python binary SMF Type 0 exporter `export_midi()`.
   - Maps Don to MIDI note 36 (General MIDI Kick / Bass Drum 1) and Ka to MIDI note 38 (Acoustic Snare) on percussion channel 10 (`0x09`).
@@ -45,11 +52,12 @@
   - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
   - Custom audio track upload endpoint (`POST /api/upload_audio`).
   - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
-- **Automated Tests:** 24/24 unit tests passing via `python3 -m unittest discover tests`.
-- **Frontend Verification:** Playwright frontend interaction test verified Tap Tempo, Beat Grid Quantizer, and MIDI download integration, confirmed via visual inspection of `/home/jules/verification/verification.png`.
+- **Automated Tests:** 25/25 unit tests passing via `python3 -m unittest discover tests`.
+- **Frontend Verification:** Playwright frontend interaction test verified Stems card, Tap Tempo, Beat Grid Quantizer, and MIDI download integration, confirmed via visual inspection of `/home/jules/verification/verification.png`.
 
 ## File Reference & Structure
 - `run.py`: Unified CLI entry point for all operations.
+- `stem_separator.py`: Pure-Python Harmonic-Percussive Source Separation (HPSS) and 3-band Butterworth spectral filter engine.
 - `model_crnn.py`: Hybrid CRNN + Multihead Rhythm Attention neural network architecture.
 - `model.py`: Original Schlüter & Böck CNN architecture for onset probabilities.
 - `synthesize.py`: Signal smoothing, multi-parameter peak picking, Taiko audio synthesis, and multi-format chart generation.
@@ -63,9 +71,9 @@
 - `tests/test_pipeline.py`: Comprehensive test suite (17 unit tests including waveform, spectrogram, WebSocket, quantization, and MIDI export tests).
 - `tests/test_cli.py`: CLI entry point test suite (2 unit tests).
 - `tests/verify_frontend_interactions.py`: Playwright frontend interaction test script.
-- `VERSION.md`: Sourced single version string (`2.2.0`).
+- `VERSION.md`: Sourced single version string (`2.3.0`).
 
 ## Next Suggested Architectural Work
-- Dynamic multi-channel audio stems separation prior to onset feature extraction.
 - Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.
 - WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
+- Sustained roll/balloon detection using harmonic spectral energy continuity.

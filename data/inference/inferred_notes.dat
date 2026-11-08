@@ -10,13 +10,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 2.384,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 3.63,
       "_lineIndex": 1,
       "_lineLayer": 0,
@@ -39,17 +32,17 @@
     },
     {
       "_time": 6.122,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 6.393,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
+    },
+    {
+      "_time": 6.881,
+      "_lineIndex": 2,
+      "_lineLayer": 1,
+      "_type": 1,
+      "_cutDirection": 0
     },
     {
       "_time": 7.098,
@@ -59,14 +52,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 7.368,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 8.127,
+      "_time": 7.856,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -94,7 +80,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 10.348,
+      "_time": 10.132,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -115,14 +101,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 12.841,
+      "_time": 12.624,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 13.112,
+      "_time": 12.841,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -144,13 +130,6 @@
     },
     {
       "_time": 15.875,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 16.091,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -171,7 +150,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 17.879,
+      "_time": 17.608,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -199,7 +178,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 21.13,
+      "_time": 20.859,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -213,28 +192,21 @@
       "_cutDirection": 1
     },
     {
-      "_time": 21.889,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 22.864,
+      "_time": 22.593,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 23.622,
+      "_time": 23.352,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 24.598,
+      "_time": 24.381,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -248,7 +220,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 26.115,
+      "_time": 25.844,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -276,7 +248,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 28.607,
+      "_time": 28.39,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -290,7 +262,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 30.124,
+      "_time": 29.853,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -304,14 +276,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 30.883,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 31.641,
+      "_time": 31.37,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -325,7 +290,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 33.592,
+      "_time": 33.375,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -360,7 +325,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 36.842,
+      "_time": 36.626,
+      "_lineIndex": 2,
+      "_lineLayer": 1,
+      "_type": 1,
+      "_cutDirection": 0
+    },
+    {
+      "_time": 37.113,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -374,13 +346,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 37.601,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 37.872,
       "_lineIndex": 2,
       "_lineLayer": 1,
@@ -388,7 +353,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 38.359,
+      "_time": 38.143,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -423,7 +388,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 40.852,
+      "_time": 40.635,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -437,14 +402,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 42.369,
+      "_time": 42.098,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 42.64,
+      "_time": 42.369,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -458,7 +423,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 44.102,
+      "_time": 43.886,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -472,14 +437,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 45.619,
+      "_time": 45.349,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 46.378,
+      "_time": 46.107,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -500,7 +465,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 48.112,
+      "_time": 47.841,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -514,14 +479,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 49.141,
+      "_time": 48.87,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 49.629,
+      "_time": 49.358,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -543,20 +508,13 @@
     },
     {
       "_time": 51.092,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 51.363,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 52.121,
+      "_time": 51.85,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -570,7 +528,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 53.096,
+      "_time": 52.88,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -605,7 +563,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 56.347,
+      "_time": 56.13,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -619,6 +577,13 @@
       "_cutDirection": 0
     },
     {
+      "_time": 57.593,
+      "_lineIndex": 2,
+      "_lineLayer": 1,
+      "_type": 1,
+      "_cutDirection": 0
+    },
+    {
       "_time": 57.864,
       "_lineIndex": 2,
       "_lineLayer": 1,
@@ -626,14 +591,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 58.135,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 58.894,
+      "_time": 58.623,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -668,7 +626,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 61.386,
+      "_time": 61.115,
+      "_lineIndex": 2,
+      "_lineLayer": 1,
+      "_type": 1,
+      "_cutDirection": 0
+    },
+    {
+      "_time": 61.603,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -682,13 +647,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 62.09,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 63.39,
       "_lineIndex": 1,
       "_lineLayer": 0,
@@ -696,14 +654,14 @@
       "_cutDirection": 1
     },
     {
-      "_time": 63.878,
+      "_time": 63.607,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 64.366,
+      "_time": 64.095,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -724,7 +682,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 67.617,
+      "_time": 67.346,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -766,14 +724,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 71.138,
+      "_time": 72.113,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 72.113,
+      "_time": 72.384,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -787,14 +745,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 72.872,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 73.63,
+      "_time": 73.36,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -808,7 +759,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 75.093,
+      "_time": 74.877,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -822,7 +773,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 76.881,
+      "_time": 76.61,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -836,13 +787,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 77.64,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 78.886,
       "_lineIndex": 1,
       "_lineLayer": 0,
@@ -850,7 +794,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 79.374,
+      "_time": 79.103,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -862,13 +806,6 @@
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
-    },
-    {
-      "_time": 79.861,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
     },
     {
       "_time": 80.62,
@@ -899,14 +836,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 84.846,
+      "_time": 84.629,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 85.875,
+      "_time": 85.604,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -927,7 +864,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 88.367,
+      "_time": 88.097,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -969,21 +906,21 @@
       "_cutDirection": 0
     },
     {
-      "_time": 91.618,
+      "_time": 91.347,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 92.106,
+      "_time": 91.889,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 93.135,
+      "_time": 92.864,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -997,14 +934,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 94.11,
+      "_time": 93.894,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 94.598,
+      "_time": 94.381,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1025,21 +962,21 @@
       "_cutDirection": 1
     },
     {
-      "_time": 96.386,
+      "_time": 96.115,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 97.09,
+      "_time": 96.874,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 97.849,
+      "_time": 97.632,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1053,7 +990,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 98.878,
+      "_time": 98.607,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1067,7 +1004,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 100.341,
+      "_time": 100.124,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1075,13 +1012,6 @@
     },
     {
       "_time": 100.883,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 101.1,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1095,21 +1025,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 102.129,
+      "_time": 102.617,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 102.888,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 103.863,
+      "_time": 103.592,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1123,7 +1046,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 105.38,
+      "_time": 105.109,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1137,14 +1060,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 106.355,
+      "_time": 106.138,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 107.114,
+      "_time": 106.843,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1158,21 +1081,21 @@
       "_cutDirection": 0
     },
     {
-      "_time": 108.631,
+      "_time": 108.36,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 109.606,
+      "_time": 109.389,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 110.094,
+      "_time": 109.877,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1200,7 +1123,14 @@
       "_cutDirection": 1
     },
     {
-      "_time": 112.098,
+      "_time": 111.881,
+      "_lineIndex": 1,
+      "_lineLayer": 0,
+      "_type": 0,
+      "_cutDirection": 1
+    },
+    {
+      "_time": 112.369,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1208,13 +1138,6 @@
     },
     {
       "_time": 112.64,
-      "_lineIndex": 1,
-      "_lineLayer": 0,
-      "_type": 0,
-      "_cutDirection": 1
-    },
-    {
-      "_time": 112.857,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1249,14 +1172,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 115.891,
+      "_time": 115.62,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 116.108,
+      "_time": 115.891,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1284,7 +1207,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 119.358,
+      "_time": 119.142,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1298,7 +1221,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 120.875,
+      "_time": 120.604,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1319,14 +1242,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 121.851,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 123.368,
+      "_time": 123.097,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1340,7 +1256,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 124.885,
+      "_time": 124.614,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1375,7 +1291,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 128.352,
+      "_time": 128.135,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1396,14 +1312,14 @@
       "_cutDirection": 1
     },
     {
-      "_time": 131.386,
+      "_time": 131.115,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 131.603,
+      "_time": 131.386,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1417,14 +1333,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 132.361,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 133.391,
+      "_time": 133.12,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1438,7 +1347,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 134.095,
+      "_time": 133.879,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1452,28 +1361,28 @@
       "_cutDirection": 0
     },
     {
-      "_time": 135.612,
+      "_time": 135.341,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 136.642,
+      "_time": 136.371,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 137.129,
+      "_time": 136.858,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 137.346,
+      "_time": 137.129,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1495,20 +1404,13 @@
     },
     {
       "_time": 140.109,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 140.38,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 140.597,
+      "_time": 140.38,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1522,21 +1424,21 @@
       "_cutDirection": 0
     },
     {
-      "_time": 142.385,
+      "_time": 142.114,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 142.872,
+      "_time": 142.601,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 143.143,
+      "_time": 142.872,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1550,7 +1452,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 143.848,
+      "_time": 143.631,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1571,7 +1473,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 145.365,
+      "_time": 145.094,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1592,13 +1494,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 147.098,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 147.369,
       "_lineIndex": 1,
       "_lineLayer": 0,
@@ -1606,7 +1501,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 147.857,
+      "_time": 147.64,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1614,34 +1509,27 @@
     },
     {
       "_time": 149.103,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 149.374,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 150.349,
+      "_time": 150.132,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 151.379,
+      "_time": 151.108,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 152.137,
+      "_time": 151.866,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1662,7 +1550,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 153.6,
+      "_time": 153.383,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1676,7 +1564,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 154.629,
+      "_time": 154.359,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1690,7 +1578,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 156.092,
+      "_time": 155.876,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1704,13 +1592,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 156.851,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 158.097,
       "_lineIndex": 1,
       "_lineLayer": 0,
@@ -1718,7 +1599,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 158.639,
+      "_time": 158.368,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1733,13 +1614,13 @@
     },
     {
       "_time": 159.885,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
+      "_lineIndex": 1,
+      "_lineLayer": 0,
+      "_type": 0,
+      "_cutDirection": 1
     },
     {
-      "_time": 160.102,
+      "_time": 160.643,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1747,13 +1628,6 @@
     },
     {
       "_time": 160.86,
-      "_lineIndex": 1,
-      "_lineLayer": 0,
-      "_type": 0,
-      "_cutDirection": 1
-    },
-    {
-      "_time": 161.131,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1774,14 +1648,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 163.352,
+      "_time": 163.136,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 164.382,
+      "_time": 164.111,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1809,6 +1683,13 @@
       "_cutDirection": 0
     },
     {
+      "_time": 166.386,
+      "_lineIndex": 1,
+      "_lineLayer": 0,
+      "_type": 0,
+      "_cutDirection": 1
+    },
+    {
       "_time": 166.603,
       "_lineIndex": 1,
       "_lineLayer": 0,
@@ -1816,14 +1697,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 166.874,
-      "_lineIndex": 1,
-      "_lineLayer": 0,
-      "_type": 0,
-      "_cutDirection": 1
-    },
-    {
-      "_time": 167.633,
+      "_time": 167.362,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1852,13 +1726,6 @@
     },
     {
       "_time": 169.637,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 169.854,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1872,21 +1739,21 @@
       "_cutDirection": 1
     },
     {
-      "_time": 171.642,
+      "_time": 171.371,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 172.346,
+      "_time": 172.13,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 173.376,
+      "_time": 173.105,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1900,7 +1767,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 174.134,
+      "_time": 173.863,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1914,7 +1781,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 175.597,
+      "_time": 175.38,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1928,7 +1795,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 176.626,
+      "_time": 176.356,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -1949,21 +1816,21 @@
       "_cutDirection": 1
     },
     {
-      "_time": 178.143,
+      "_time": 177.873,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 179.119,
+      "_time": 178.848,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 179.606,
+      "_time": 179.39,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -1977,13 +1844,6 @@
       "_cutDirection": 1
     },
     {
-      "_time": 180.636,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 181.123,
       "_lineIndex": 2,
       "_lineLayer": 1,
@@ -1991,14 +1851,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 182.099,
+      "_time": 181.882,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 182.37,
+      "_time": 182.099,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2026,7 +1886,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 185.349,
+      "_time": 185.133,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2040,7 +1900,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 186.379,
+      "_time": 186.108,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2048,20 +1908,13 @@
     },
     {
       "_time": 186.866,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 187.137,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 187.842,
+      "_time": 187.625,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
@@ -2075,7 +1928,7 @@
       "_cutDirection": 1
     },
     {
-      "_time": 188.871,
+      "_time": 188.6,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2103,21 +1956,21 @@
       "_cutDirection": 0
     },
     {
-      "_time": 191.092,
+      "_time": 190.876,
       "_lineIndex": 1,
       "_lineLayer": 0,
       "_type": 0,
       "_cutDirection": 1
     },
     {
-      "_time": 191.363,
+      "_time": 191.092,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 192.88,
+      "_time": 192.61,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2132,13 +1985,6 @@
     },
     {
       "_time": 194.127,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 194.343,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2166,14 +2012,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 197.865,
+      "_time": 197.594,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 198.623,
+      "_time": 198.353,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2194,13 +2040,6 @@
       "_cutDirection": 0
     },
     {
-      "_time": 200.141,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
       "_time": 200.628,
       "_lineIndex": 2,
       "_lineLayer": 1,
@@ -2208,14 +2047,14 @@
       "_cutDirection": 0
     },
     {
-      "_time": 201.116,
+      "_time": 200.845,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
       "_cutDirection": 0
     },
     {
-      "_time": 201.874,
+      "_time": 201.603,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2229,7 +2068,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 202.85,
+      "_time": 202.633,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2250,7 +2089,7 @@
       "_cutDirection": 0
     },
     {
-      "_time": 205.125,
+      "_time": 206.371,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,
@@ -2258,13 +2097,6 @@
     },
     {
       "_time": 206.642,
-      "_lineIndex": 2,
-      "_lineLayer": 1,
-      "_type": 1,
-      "_cutDirection": 0
-    },
-    {
-      "_time": 206.859,
       "_lineIndex": 2,
       "_lineLayer": 1,
       "_type": 1,

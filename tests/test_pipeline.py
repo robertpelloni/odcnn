@@ -292,5 +292,48 @@ class TestODCNNPipeline(unittest.TestCase):
         self.assertEqual(res.headers["content-type"], "audio/midi")
         self.assertTrue(res.content.startswith(b"MThd"))
 
+    def test_stem_separation_and_api(self):
+        """Test Harmonic/Percussive source separation and stems endpoints."""
+        import numpy as np
+        import stem_separator
+        from fastapi.testclient import TestClient
+        import dashboard
+
+        # 1. Test separate_hpss math on synthetic tone + clicks
+        sr = 44100
+        t = np.linspace(0, 0.5, int(0.5 * sr), endpoint=False)
+        sine = 0.5 * np.sin(2 * np.pi * 440 * t).astype(np.float32)
+        click = np.zeros_like(t)
+        click[5000:5050] = 0.9
+
+        mix = sine + click
+        harm, perc, h_ratio, p_ratio = stem_separator.separate_hpss(mix, sr=sr, kernel_size=15)
+        self.assertEqual(len(harm), len(mix))
+        self.assertEqual(len(perc), len(mix))
+        self.assertGreater(h_ratio, 0.0)
+        self.assertGreater(p_ratio, 0.0)
+
+        # 2. Test subband separation
+        bass, mid, treble = stem_separator.separate_subbands(mix, sr=sr)
+        self.assertEqual(len(bass), len(mix))
+        self.assertEqual(len(mid), len(mix))
+        self.assertEqual(len(treble), len(mix))
+
+        # 3. Test stems API endpoints
+        client = TestClient(dashboard.app)
+        res_status = client.get("/api/stems/status")
+        self.assertEqual(res_status.status_code, 200)
+        self.assertIn("available", res_status.json())
+
+        # Test download stem endpoints (percussive exists from setup)
+        res_perc = client.get("/api/download/stem/percussive")
+        if res_perc.status_code == 200:
+            self.assertEqual(res_perc.headers["content-type"], "audio/wav")
+            self.assertGreater(len(res_perc.content), 1000)
+
+        # Test invalid stem type returns 400
+        res_inv = client.get("/api/download/stem/invalid_stem")
+        self.assertEqual(res_inv.status_code, 400)
+
 if __name__ == "__main__":
     unittest.main()

@@ -103,6 +103,17 @@ def run():
         assert "/api/download/midi" in midi_btn.get_attribute("href")
         print("MIDI download button verified successfully")
 
+        # Verify Stems Card and Controls
+        stems_card = page.locator("#stemsCard")
+        assert stems_card.is_visible(), "Stems card should be visible"
+        extract_stems_btn = page.locator("#btnExtractStems")
+        assert extract_stems_btn.is_visible(), "Extract stems button should be visible"
+        perc_btn = page.locator("#downloadPercussiveBtn")
+        assert perc_btn.is_visible(), "Percussive stem download button should be visible"
+        harm_btn = page.locator("#downloadHarmonicBtn")
+        assert harm_btn.is_visible(), "Harmonic stem download button should be visible"
+        print("Stems controls and download buttons verified successfully")
+
         page.screenshot(path="/home/jules/verification/verification.png", full_page=True)
         print("Screenshot saved to /home/jules/verification/verification.png")
 

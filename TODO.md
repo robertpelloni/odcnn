@@ -25,4 +25,6 @@
 - [x] Export CRNN to ONNX format and verify ONNX Runtime inference.
 - [x] Add BPM tap tempo & beat grid snapping tool.
 - [x] Add interactive Standard MIDI File (SMF Type 0) chart export (.mid).
-- [ ] Add dynamic multi-channel audio stems separation prior to onset feature extraction.
+- [x] Add dynamic multi-channel audio stems separation prior to onset feature extraction (`stem_separator.py`).
+- [ ] Add standalone low-latency C++/Rust ONNX runner for hardware microcontrollers.
+- [ ] Add WebAssembly / WebAudio client-side onset inference directly in browser.

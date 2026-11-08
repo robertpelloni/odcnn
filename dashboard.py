@@ -429,6 +429,64 @@ def download_sample_music():
         return FileResponse(path, media_type="audio/ogg", filename="test_music.ogg")
     return JSONResponse({"error": "Sample music not found"}, status_code=404)
 
+@app.post("/api/stems/extract")
+def extract_stems(source: str = "auto"):
+    """
+    Extracts harmonic/percussive and sub-band stems from the selected audio file.
+    """
+    import stem_separator
+    custom_p = DATA_DIR / "custom_audio.wav"
+    sample_p = DATA_DIR / "test" / "test_music.ogg"
+
+    if source == "custom" and custom_p.exists() and custom_p.stat().st_size > 1000:
+        audio_path = custom_p
+    elif source == "sample" and sample_p.exists():
+        audio_path = sample_p
+    elif custom_p.exists() and custom_p.stat().st_size > 1000:
+        audio_path = custom_p
+    elif sample_p.exists():
+        audio_path = sample_p
+    else:
+        return JSONResponse({"error": "No audio source found to extract stems"}, status_code=404)
+
+    def do_stem_extraction():
+        log_event(f"Starting audio stem separation on {audio_path.name}...")
+        stems_dir = DATA_DIR / "stems"
+        result = stem_separator.extract_and_save_stems(str(audio_path), str(stems_dir))
+        log_event(f"Stem separation complete! Harmonic: {result['harmonic_ratio']*100:.1f}%, Percussive: {result['percussive_ratio']*100:.1f}%")
+        return result
+
+    run_background_task("Extract Audio Stems", do_stem_extraction)
+    return {"status": "ok", "message": "Stem separation initiated"}
+
+@app.get("/api/stems/status")
+def stems_status():
+    stems_dir = DATA_DIR / "stems"
+    p_path = stems_dir / "stem_percussive.wav"
+    h_path = stems_dir / "stem_harmonic.wav"
+    b_path = stems_dir / "stem_bass.wav"
+    t_path = stems_dir / "stem_treble.wav"
+
+    available = p_path.exists() and h_path.exists()
+    return {
+        "available": available,
+        "percussive": p_path.exists(),
+        "harmonic": h_path.exists(),
+        "bass": b_path.exists(),
+        "treble": t_path.exists(),
+    }
+
+@app.get("/api/download/stem/{stem_type}")
+def download_stem(stem_type: str):
+    allowed = {"percussive", "harmonic", "bass", "treble"}
+    if stem_type not in allowed:
+        return JSONResponse({"error": f"Invalid stem type: {stem_type}"}, status_code=400)
+
+    path = DATA_DIR / "stems" / f"stem_{stem_type}.wav"
+    if path.exists():
+        return FileResponse(path, media_type="audio/wav", filename=f"stem_{stem_type}.wav")
+    return JSONResponse({"error": f"Stem '{stem_type}' not found"}, status_code=404)
+
 @app.get("/api/audio_waveform")
 def get_audio_waveform(source: str = "auto"):
     """
@@ -1459,6 +1517,65 @@ def index_page():
         </div>
       </div>
 
+      <!-- Section: Dynamic Audio Stems & Harmonic/Percussive Separator -->
+      <div class="card col-12" id="stemsCard">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🎛️ Dynamic Audio Stems & Harmonic/Percussive Separator</span>
+            <span class="tooltip-icon" title="Extracts transient percussive drum stems and tonal harmonic melodies using STFT median-filtering (HPSS). Enhances rhythm onset picking accuracy by isolating drum transients from melody.">?</span>
+          </div>
+          <span class="status-pill pill-ready" id="stemsStatusBadge">HPSS Engine Ready</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">1. Extract Stems</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Decompose the current song into Percussive (drums/transients) and Harmonic (melody/vocals) components.
+            </p>
+            <div style="display: flex; gap: 10px;">
+              <select id="stemsSourceSelect" class="form-control">
+                <option value="auto">Auto (Uploaded if available, else Sample)</option>
+                <option value="custom">Custom Uploaded Track</option>
+                <option value="sample">Built-in Test Track</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" id="btnExtractStems" onclick="extractStemsAction()" style="margin-top: 10px; width: 100%;">
+              ⚡ Extract Audio Stems
+            </button>
+            <div id="stemsResultMsg" style="font-size: 0.75rem; color: var(--accent-cyan); margin-top: 6px;"></div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">2. Percussive Stem (Drum / Transient)</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              Isolated kicks, snares, and transients used for high-accuracy onset detection.
+            </p>
+            <audio id="percussiveAudioPlayer" controls style="width: 100%; height: 36px; margin-bottom: 6px;">
+              <source src="/api/download/stem/percussive" type="audio/wav">
+            </audio>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.75rem; color: var(--accent-red);">Direct Transient Feed</span>
+              <a href="/api/download/stem/percussive" download id="downloadPercussiveBtn" class="btn-quit" style="text-decoration: none; padding: 2px 8px; font-size: 0.75rem;">Download Percussive WAV</a>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">3. Harmonic Stem (Tonal / Melody)</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              Sustained tonal elements, vocals, synthesizers, and instruments.
+            </p>
+            <audio id="harmonicAudioPlayer" controls style="width: 100%; height: 36px; margin-bottom: 6px;">
+              <source src="/api/download/stem/harmonic" type="audio/wav">
+            </audio>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.75rem; color: var(--accent-cyan);">Tonal Background Feed</span>
+              <a href="/api/download/stem/harmonic" download id="downloadHarmonicBtn" class="btn-quit" style="text-decoration: none; padding: 2px 8px; font-size: 0.75rem;">Download Harmonic WAV</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Section 5: Live Streaming & Custom Audio -->
       <div class="card col-12">
         <div class="card-header">
@@ -2129,6 +2246,43 @@ def index_page():
       } finally {
         btn.disabled = false;
         btn.innerText = '📐 Quantize Charts to Grid';
+      }
+    }
+
+    async function extractStemsAction() {
+      const btn = document.getElementById('btnExtractStems');
+      const msg = document.getElementById('stemsResultMsg');
+      const badge = document.getElementById('stemsStatusBadge');
+      const source = document.getElementById('stemsSourceSelect').value;
+
+      btn.disabled = true;
+      btn.innerText = 'Extracting HPSS Stems...';
+      msg.textContent = 'Processing Harmonic-Percussive separation...';
+      badge.textContent = 'Separating Stems...';
+      badge.className = 'status-pill pill-running';
+
+      try {
+        const res = await fetch(`/api/stems/extract?source=${source}`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          msg.textContent = 'Stem separation job started. Refreshing audio feeds...';
+          setTimeout(() => {
+            document.getElementById('percussiveAudioPlayer').load();
+            document.getElementById('harmonicAudioPlayer').load();
+            badge.textContent = 'Stems Ready';
+            badge.className = 'status-pill pill-ready';
+            msg.textContent = 'Stems ready: Percussive & Harmonic available for audition.';
+          }, 2500);
+        } else {
+          msg.textContent = 'Failed: ' + (data.error || 'Unknown error');
+          badge.textContent = 'Error';
+          badge.className = 'status-pill pill-idle';
+        }
+      } catch (err) {
+        msg.textContent = 'Network error extracting stems';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '⚡ Extract Audio Stems';
       }
     }
 

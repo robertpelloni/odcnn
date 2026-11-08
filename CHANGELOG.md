@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## [2.3.0] - 2025-11-08
+### Added
+- **Dynamic Multi-Stem Audio Separation Engine (`stem_separator.py`):**
+  - Designed and implemented pure-Python, zero-dependency Harmonic-Percussive Source Separation (HPSS) using 2D median filtering across STFT spectral representations (`separate_hpss`).
+  - Separates transient rhythmic drum percussions (vertical spectral lines) from tonal melodic instruments and vocals (horizontal spectral lines) using soft spectral masking.
+  - Implemented 3-band sub-band spectral separation (`separate_subbands`) utilizing 4th-order Butterworth filters to isolate Bass (< 250 Hz), Mid (250 Hz - 2500 Hz), and Treble (> 2500 Hz) stems.
+  - Implemented automated batch stem extraction and 16-bit WAV writing (`extract_and_save_stems`) outputting `stem_percussive.wav`, `stem_harmonic.wav`, `stem_bass.wav`, and `stem_treble.wav` to `data/stems/`.
+- **FastAPI Studio REST API Integration:**
+  - Added `POST /api/stems/extract` triggering asynchronous or synchronous multi-stem extraction for either test audio or custom uploaded audio.
+  - Added `GET /api/stems/status` reporting stem generation status, timestamps, and available stem files.
+  - Added `GET /api/download/stem/{stem_type}` allowing instant downloading and streaming of percussive, harmonic, bass, or treble stems with `audio/wav` headers.
+- **Unified Studio Dashboard UI Controls:**
+  - Added interactive card: "🎛️ Dynamic Audio Stems & Harmonic/Percussive Separator" (`#stemsCard`) within the consolidated studio interface.
+  - Included audio track source selector, "Extract Audio Stems" trigger button (`#btnExtractStems`), real-time extraction status badge (`#stemsStatusBadge`), and independent HTML5 audio preview players and download buttons for percussive and harmonic stems.
+- **Automated Test Suite & Frontend Verification:**
+  - Added comprehensive unit test `test_stem_separation_and_api` in `tests/test_pipeline.py` verifying mathematical separation energy preservation, file persistence, REST API responses, and download stream endpoints (test suite expanded to 25/25 passing tests).
+  - Updated Playwright interaction test `tests/verify_frontend_interactions.py` with stem separation testing, verified cleanly without errors, and confirmed with visual inspection of UI snapshot.
+
 ## [2.2.0] - 2025-11-08
 ### Added
 - **Standard MIDI File (SMF Type 0) Exporter (`chart_exporters.py`):**
