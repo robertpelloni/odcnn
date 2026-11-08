@@ -19,6 +19,7 @@ from typing import Optional, Dict, Any
 
 import numpy as np
 import soundfile as sf
+import librosa
 import torch
 from fastapi import FastAPI, Request, BackgroundTasks, Form, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -406,6 +407,77 @@ def download_sample_music():
     if path.exists():
         return FileResponse(path, media_type="audio/ogg", filename="test_music.ogg")
     return JSONResponse({"error": "Sample music not found"}, status_code=404)
+
+@app.get("/api/audio_waveform")
+def get_audio_waveform(source: str = "auto"):
+    """
+    Generate downsampled audio envelope data (positive/negative peaks)
+    along with parsed detected rhythm note timestamps for interactive waveform scrubbing.
+    """
+    try:
+        custom_p = DATA_DIR / "custom_audio.wav"
+        if source == "custom" and custom_p.exists() and custom_p.stat().st_size > 1000:
+            target_path = custom_p
+        elif source == "sample" or not custom_p.exists() or custom_p.stat().st_size <= 1000:
+            target_path = DATA_DIR / "test" / "test_music.ogg"
+        else:
+            target_path = custom_p
+
+        if not target_path.exists():
+            return JSONResponse({"error": "Audio source file not found"}, status_code=404)
+
+        y, sr = librosa.load(str(target_path), sr=22050)
+        duration = float(len(y) / sr)
+        points = 1000
+        step = max(1, len(y) // points)
+        pos_peaks = []
+        neg_peaks = []
+        for i in range(0, len(y), step):
+            chunk = y[i:i+step]
+            if len(chunk) > 0:
+                pos_peaks.append(round(float(np.max(chunk)), 3))
+                neg_peaks.append(round(float(np.min(chunk)), 3))
+
+        notes = []
+        tja_path = DATA_DIR / "inference" / "inferred_notes.tja"
+        if tja_path.exists():
+            bpm = 240.0
+            measure_duration = 4.0 * (60.0 / bpm)
+            current_time = 0.0
+            with open(tja_path, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("BPM:"):
+                        try:
+                            bpm = float(line.split(":")[1])
+                            measure_duration = 4.0 * (60.0 / bpm)
+                        except Exception:
+                            pass
+                    elif line.endswith(","):
+                        measure = line[:-1]
+                        n = len(measure)
+                        if n > 0:
+                            char_dur = measure_duration / n
+                            for idx, ch in enumerate(measure):
+                                if ch in ("1", "2"):
+                                    notes.append({
+                                        "time": round(current_time + idx * char_dur, 3),
+                                        "type": "DON" if ch == "1" else "KA"
+                                    })
+                            current_time += measure_duration
+
+        return JSONResponse({
+            "source": target_path.name,
+            "duration": round(duration, 3),
+            "sample_rate": sr,
+            "points": len(pos_peaks),
+            "pos": pos_peaks,
+            "neg": neg_peaks,
+            "notes": notes
+        })
+    except Exception as e:
+        log_event(f"Error computing audio waveform: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 @app.post("/api/upload_audio")
@@ -1143,7 +1215,46 @@ def index_page():
         </div>
       </div>
 
-      <!-- Section 6: Real-Time Engine Logs -->
+      <!-- Section 6: Interactive Waveform Visualizer & Onset Scrubber -->
+      <div class="card col-12">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🌊 Interactive Audio Waveform & Rhythm Onset Scrubber</span>
+            <span class="tooltip-icon" title="High-precision audio envelope visualization with overlaid neural onset detections (Red Don / Blue Ka). Click anywhere on the waveform or on an onset marker to jump audio playback directly.">?</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn btn-secondary" onclick="loadWaveformData()" style="padding: 4px 10px; font-size: 0.8rem;">↻ Reload Waveform</button>
+            <span class="status-pill pill-ready" id="waveStatusBadge">Ready</span>
+          </div>
+        </div>
+
+        <div style="position: relative; width: 100%; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.85rem;">
+            <div>
+              <span style="color: var(--text-muted);">Current Track:</span>
+              <strong id="waveTrackName">test_music.ogg</strong>
+              <span style="margin-left: 12px; color: var(--text-muted);">Duration:</span>
+              <strong id="waveDuration">0:00</strong>
+              <span style="margin-left: 12px; color: var(--text-muted);">Detected Notes:</span>
+              <strong id="waveNoteCount">0</strong>
+              (<span style="color: var(--accent-don); font-weight: bold;">● Don</span> / <span style="color: var(--accent-ka); font-weight: bold;">● Ka</span>)
+            </div>
+            <div style="color: var(--accent-gold); font-size: 0.8rem;" id="waveScrubberTime">
+              Playback: 0.00s / 0.00s
+            </div>
+          </div>
+
+          <div style="position: relative; background: #0c1017; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; height: 140px; cursor: pointer;" id="waveformContainer" onclick="handleWaveformClick(event)">
+            <canvas id="waveformCanvas" width="1200" height="140" style="width: 100%; height: 100%; display: block;"></canvas>
+            <div id="playheadBar" style="position: absolute; top: 0; left: 0%; width: 2px; height: 100%; background: #ffd700; pointer-events: none; transition: left 0.05s linear; box-shadow: 0 0 8px #ffd700;"></div>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
+            💡 Click anywhere inside the waveform canvas to scrub audio playback time. Hover to view note timestamps.
+          </p>
+        </div>
+      </div>
+
+      <!-- Section 7: Real-Time Engine Logs -->
       <div class="card col-12">
         <div class="card-header">
           <div class="card-title">
@@ -1426,6 +1537,129 @@ def index_page():
         setTimeout(() => { badgeKa.style.display = 'none'; }, 200);
       }
     }
+
+    // --- Interactive Waveform Visualizer & Scrubber ---
+    let waveformCache = null;
+
+    async function loadWaveformData() {
+      const badge = document.getElementById('waveStatusBadge');
+      badge.textContent = 'Loading...';
+      try {
+        const res = await fetch('/api/audio_waveform');
+        if (!res.ok) throw new Error('Failed to load waveform data');
+        waveformCache = await res.json();
+
+        document.getElementById('waveTrackName').textContent = waveformCache.source;
+        document.getElementById('waveDuration').textContent = formatSeconds(waveformCache.duration);
+        document.getElementById('waveNoteCount').textContent = waveformCache.notes ? waveformCache.notes.length : 0;
+        badge.className = 'status-pill pill-ready';
+        badge.textContent = 'Waveform Ready';
+
+        renderWaveformCanvas();
+      } catch (err) {
+        console.error('Waveform error:', err);
+        badge.className = 'status-pill pill-missing';
+        badge.textContent = 'Error Loading';
+      }
+    }
+
+    function formatSeconds(secs) {
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function renderWaveformCanvas() {
+      if (!waveformCache) return;
+      const canvas = document.getElementById('waveformCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const midY = height / 2;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Background subtle grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, midY);
+      ctx.lineTo(width, midY);
+      ctx.stroke();
+
+      const pos = waveformCache.pos || [];
+      const neg = waveformCache.neg || [];
+      const numPoints = pos.length;
+      if (numPoints === 0) return;
+
+      const stepX = width / numPoints;
+
+      // Draw Waveform Envelope
+      ctx.fillStyle = '#00d2ff';
+      for (let i = 0; i < numPoints; i++) {
+        const x = i * stepX;
+        const topH = Math.max(1, pos[i] * (midY - 4));
+        const botH = Math.max(1, Math.abs(neg[i]) * (midY - 4));
+        ctx.fillRect(x, midY - topH, Math.max(1, stepX - 0.5), topH + botH);
+      }
+
+      // Draw Onset Markers
+      const notes = waveformCache.notes || [];
+      const duration = waveformCache.duration || 1.0;
+
+      notes.forEach(note => {
+        const nx = (note.time / duration) * width;
+        ctx.fillStyle = note.type === 'DON' ? '#ff3b30' : '#007aff';
+        ctx.fillRect(nx - 1, 0, 2, height);
+
+        // Small top dot
+        ctx.beginPath();
+        ctx.arc(nx, 8, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function handleWaveformClick(event) {
+      if (!waveformCache || !waveformCache.duration) return;
+      const container = document.getElementById('waveformContainer');
+      const rect = container.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+      const targetTime = ratio * waveformCache.duration;
+
+      // Update playhead position visually
+      const playhead = document.getElementById('playheadBar');
+      playhead.style.left = (ratio * 100) + '%';
+
+      // Update time indicator
+      document.getElementById('waveScrubberTime').textContent =
+        `Playback: ${targetTime.toFixed(2)}s / ${waveformCache.duration.toFixed(2)}s`;
+
+      // Update HTML5 audio player if active
+      const player = document.getElementById('synthesizedAudioPlayer');
+      if (player && !isNaN(player.duration) && player.duration > 0) {
+        player.currentTime = Math.min(targetTime, player.duration);
+      }
+    }
+
+    // Sync playhead with audio player playback
+    document.addEventListener('DOMContentLoaded', () => {
+      loadWaveformData();
+      const player = document.getElementById('synthesizedAudioPlayer');
+      if (player) {
+        player.addEventListener('timeupdate', () => {
+          if (!waveformCache || !waveformCache.duration) return;
+          const pct = (player.currentTime / waveformCache.duration) * 100;
+          const playhead = document.getElementById('playheadBar');
+          if (playhead) playhead.style.left = `${Math.min(100, Math.max(0, pct))}%`;
+          const timeText = document.getElementById('waveScrubberTime');
+          if (timeText) {
+            timeText.textContent = `Playback: ${player.currentTime.toFixed(2)}s / ${waveformCache.duration.toFixed(2)}s`;
+          }
+        });
+      }
+    });
 
   </script>
 </body>

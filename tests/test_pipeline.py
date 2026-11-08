@@ -199,5 +199,19 @@ class TestODCNNPipeline(unittest.TestCase):
             self.assertIn("type", data["onsets"][0])
             self.assertIn(data["onsets"][0]["type"], ["don", "ka"])
 
+    def test_audio_waveform_endpoint(self):
+        """Test /api/audio_waveform returns valid downsampled envelope points and note timestamps."""
+        response = self.client.get("/api/audio_waveform")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("source", data)
+        self.assertIn("duration", data)
+        self.assertGreater(data["duration"], 0)
+        self.assertIn("points", data)
+        self.assertEqual(len(data["pos"]), data["points"])
+        self.assertEqual(len(data["neg"]), data["points"])
+        self.assertIn("notes", data)
+        self.assertIsInstance(data["notes"], list)
+
 if __name__ == "__main__":
     unittest.main()

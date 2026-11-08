@@ -1,7 +1,11 @@
 # HANDOFF: Session Memory & Operational Status
 
-## Current System State (v1.6.0)
+## Current System State (v1.7.0)
 - **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
+- **Interactive Audio Waveform Visualizer & Rhythm Onset Scrubber:**
+  - Fast downsampled dual min/max envelope generator endpoint `/api/audio_waveform` returning 1000 point waveform profile and parsed rhythm note timestamps.
+  - Interactive HTML5 Canvas visualizer rendering waveforms with overlaid color-coded hit markers (Red Don / Blue Ka) and synchronized timeline scrubber cursor.
+  - Click-to-scrub seeks the studio `<audio>` element with real-time timecode updates.
 - **Live WebSocket Microphone Streaming (`/ws/stream`):**
   - FastAPI WebSocket endpoint accepts Float32 binary PCM audio chunks directly from user microphones.
   - Streaming onset detector evaluates RMS energy jumps and classifies hits as Don or Ka based on spectral centroid frequencies.
@@ -21,7 +25,7 @@
   - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
   - Custom audio track upload endpoint (`POST /api/upload_audio`).
   - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
-- **Automated Tests:** 14/14 unit tests passing via `python3 -m unittest discover tests`.
+- **Automated Tests:** 15/15 unit tests passing via `python3 -m unittest discover tests`.
 - **Frontend Verification:** Screenshot verified with Playwright at `/home/jules/verification/verification.png`.
 
 ## File Reference & Structure
@@ -32,14 +36,14 @@
 - `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber.
 - `export_onnx.py`: ONNX exporter and ONNX Runtime inference class.
 - `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
-- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, audio upload/streaming simulator, and WebSocket live mic streaming.
+- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, audio upload/streaming simulator, WebSocket live mic streaming, and interactive waveform scrubber.
 - `tray_app.py`: System tray manager with desktop process management and shutdown.
-- `tests/test_pipeline.py`: Comprehensive test suite (12 unit tests including WebSocket test).
+- `tests/test_pipeline.py`: Comprehensive test suite (13 unit tests including waveform and WebSocket tests).
 - `tests/test_cli.py`: CLI entry point test suite (2 unit tests).
 - `tests/verify_frontend_interactions.py`: Playwright frontend interaction test script.
-- `VERSION.md`: Sourced single version string (`1.6.0`).
+- `VERSION.md`: Sourced single version string (`1.7.0`).
 
 ## Next Suggested Architectural Work
-- Interactive waveform visualizer with timeline scrubbing and onset hit marker placement.
+- Spectrogram frequency heatmap canvas visualizer.
 - Conformer / Recurrent network architecture exploration for long-range tempo awareness.
 - Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.

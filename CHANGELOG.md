@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## [1.7.0] - 2025-11-08
+### Added
+- **Interactive Audio Waveform Visualizer & Rhythm Onset Scrubber:**
+  - Added `/api/audio_waveform` endpoint in `dashboard.py` generating downsampled dual min/max envelopes (1000 data points) and parsed rhythm note timestamps directly from generated `.tja` charts.
+  - Implemented an HTML5 Canvas waveform visualizer featuring envelope drawing, overlaid rhythm onset hit markers (Red Don / Blue Ka), interactive scrubber timeline with time display, and audio element synchronization.
+- **Waveform Unit Testing:**
+  - Added `test_audio_waveform_endpoint` in `tests/test_pipeline.py` verifying envelope structure, note timestamps, and duration calculation.
+- **Automated Frontend Verification:**
+  - Updated Playwright test `tests/verify_frontend_interactions.py` validating waveform canvas visibility, metadata loading (`597 notes`, `93.15s`), and scrubber click seeking.
+
 ## [1.6.0] - 2025-11-08
 ### Added
 - **Live WebSocket Microphone Audio Streaming:**
