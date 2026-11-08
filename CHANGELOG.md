@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [2.1.0] - 2025-11-08
+### Added
+- **Interactive BPM Tap Tempo Calculator:**
+  - Added real-time tap tempo estimator in `dashboard.py` calculating tempo from consecutive tap intervals with automatic pause resets (>2.5s) and running average smoothing.
+  - Interactive "TAP TEMPO" UI button and live BPM readout badge displaying computed tempos in real time.
+- **Beat Grid Quantization Engine (`chart_exporters.py`):**
+  - Added `quantize_timestamps_to_grid(timestamps_sec, bpm, division, offset_sec)` implementing musical beat grid snapping across standard subdivisions (1/4 quarter notes, 1/8 eighth notes, 1/12 triplets, 1/16 sixteenth notes, 1/24 triplet sixteenths, 1/32 thirty-second notes) with duplicate deduplication.
+- **Universal Multi-Format Re-Quantization Endpoint (`/api/chart/quantize`):**
+  - Added REST endpoint in `dashboard.py` that parses existing `.tja` note lines, extracts Don and Ka onset timestamps, snaps them to the selected BPM grid, rewrites the `.tja` measure structure, and regenerates all exported formats (`.osu`, `.sm`, `.dat`) on the fly.
+- **UI Integration in Unified Studio:**
+  - Designed and added interactive card: "⏱️ BPM Tap Tempo & Beat Grid Quantizer" with BPM input, musical subdivision dropdown, beat offset control, and one-click "Quantize Charts to Grid" execution.
+  - Real-time result badges and status feedback.
+- **Comprehensive Unit & Frontend Verification:**
+  - Added unit tests `test_quantize_timestamps_algorithm` and `test_quantize_charts_api_endpoint` in `tests/test_pipeline.py`.
+  - Added automated Playwright interaction test verifying the Tap Tempo button, grid quantization API execution, and visual screenshot fidelity.
+
 ## [2.0.0] - 2025-11-08
 ### Added
 - **CRNN & Multihead Rhythm Attention Neural Architecture (`model_crnn.py`):**

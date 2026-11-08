@@ -51,7 +51,13 @@
 - [x] Dual model architecture support (`cnn` vs. `crnn`) across pipeline (`infer.py`, `dashboard.py`, `run.py`, `export_onnx.py`).
 - [x] Dynamic batch axis ONNX export and ONNX Runtime execution for CRNN architectures.
 
-### Milestone 10: Embedded Integration & Future Expansion (Next)
+### Milestone 10: Beat Grid Snapping & Rhythm Chart Quantization (v2.1.0 - Completed)
+- [x] BPM Tap Tempo real-time calculator with interval smoothing and pause reset.
+- [x] Mathematical beat grid snapping engine across standard musical subdivisions (1/4 to 1/32).
+- [x] Multi-format chart re-quantization endpoint (`/api/chart/quantize`) rewriting `.tja`, `.osu`, `.sm`, and `.dat` files.
+- [x] Interactive studio UI card for tap tempo, grid division selection, and one-click chart quantization.
+
+### Milestone 11: Embedded Integration & Future Expansion (Next)
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
-- [ ] BPM tap tempo & beat grid snapping tool for chart editing.
+- [ ] Direct MIDI chart export (.mid) for digital audio workstation (DAW) timeline integration.

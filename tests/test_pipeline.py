@@ -229,5 +229,37 @@ class TestODCNNPipeline(unittest.TestCase):
         val = data["matrix"][0][0]
         self.assertTrue(0.0 <= val <= 1.0)
 
+    def test_quantize_timestamps_algorithm(self):
+        """Test beat grid timestamp snapping across different musical subdivisions."""
+        import numpy as np
+        import chart_exporters
+
+        # At 120 BPM, quarter notes occur every 0.5s
+        raw = np.array([0.48, 1.02, 1.51, 1.99, 2.53])
+        snapped = chart_exporters.quantize_timestamps_to_grid(raw, bpm=120.0, division=4)
+        expected = np.array([0.5, 1.0, 1.5, 2.0, 2.5])
+        self.assertTrue(np.allclose(snapped, expected, atol=1e-3))
+
+        # At 120 BPM with 1/16th subdivision (division=16, step = 0.125s)
+        raw_16th = np.array([0.12, 0.26, 0.37, 0.51])
+        snapped_16th = chart_exporters.quantize_timestamps_to_grid(raw_16th, bpm=120.0, division=16)
+        expected_16th = np.array([0.125, 0.25, 0.375, 0.5])
+        self.assertTrue(np.allclose(snapped_16th, expected_16th, atol=1e-3))
+
+    def test_quantize_charts_api_endpoint(self):
+        """Test /api/chart/quantize endpoint in dashboard."""
+        from fastapi.testclient import TestClient
+        import dashboard
+        client = TestClient(dashboard.app)
+
+        res = client.post("/api/chart/quantize", data={"bpm": "140.0", "division": "16", "offset": "0.05"})
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["bpm"], 140.0)
+        self.assertEqual(data["division"], 16)
+        self.assertIn("don_count", data)
+        self.assertIn("ka_count", data)
+
 if __name__ == "__main__":
     unittest.main()

@@ -22,7 +22,7 @@
   - Exports detected onsets into standard Taikosanjiro `.tja` chart format.
 - `dashboard.py`: Unified single-page FastAPI web application providing end-to-end access to preprocessing, training, inference (CNN vs. CRNN), peak-picking, chart generation, live microphone streaming, interactive waveform scrubber, and Mel spectrogram heatmap visualizer.
 - `tray_app.py`: System tray companion for desktop server lifecycle control.
-- `chart_exporters.py`: Multi-format exporters for osu! Taiko, StepMania, and Beat Saber.
+- `chart_exporters.py`: Multi-format exporters for osu! Taiko, StepMania, Beat Saber, and beat grid quantizer `quantize_timestamps_to_grid()`.
 - `export_onnx.py`: ONNX graph exporter for both CNN and CRNN models and ONNX Runtime inference engine.
 - `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
 

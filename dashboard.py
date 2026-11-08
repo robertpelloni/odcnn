@@ -32,6 +32,7 @@ import music_processor
 import synthesize
 import export_onnx
 import audio_stream
+import chart_exporters
 
 # Global paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -538,6 +539,138 @@ def get_spectrogram_data(source: str = "auto", n_mels: int = 48):
         })
     except Exception as e:
         log_event(f"Error computing spectrogram: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+
+@app.post("/api/chart/quantize")
+async def quantize_charts(
+    bpm: float = Form(120.0),
+    division: int = Form(16),
+    offset: float = Form(0.0)
+):
+    """
+    Quantize inferred note timestamps according to BPM and grid division (4, 8, 12, 16, 24, 32),
+    then re-export all supported chart formats (.tja, .osu, .sm, .dat).
+    """
+    try:
+        tja_path = INFERENCE_DIR / "inferred_notes.tja"
+        if not tja_path.exists():
+            return JSONResponse({"error": "No inferred notes chart found. Please run synthesis first."}, status_code=400)
+
+        # Parse existing notes from .tja
+        don_times = []
+        ka_times = []
+        current_bpm = 240.0
+        measure_duration = 4.0 * (60.0 / current_bpm)
+        current_time = 0.0
+
+        with open(tja_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("BPM:"):
+                    try:
+                        current_bpm = float(line.split(":")[1])
+                        measure_duration = 4.0 * (60.0 / current_bpm)
+                    except Exception:
+                        pass
+                elif line.endswith(","):
+                    measure = line[:-1]
+                    n = len(measure)
+                    if n > 0:
+                        char_dur = measure_duration / n
+                        for idx, ch in enumerate(measure):
+                            t = round(current_time + idx * char_dur, 4)
+                            if ch == "1":
+                                don_times.append(t)
+                            elif ch == "2":
+                                ka_times.append(t)
+                        current_time += measure_duration
+
+        don_arr = np.array(don_times, dtype=np.float64)
+        ka_arr = np.array(ka_times, dtype=np.float64)
+
+        # Quantize to target grid
+        quantized_don = chart_exporters.quantize_timestamps_to_grid(don_arr, bpm=bpm, division=division, offset_sec=offset)
+        quantized_ka = chart_exporters.quantize_timestamps_to_grid(ka_arr, bpm=bpm, division=division, offset_sec=offset)
+
+        # Avoid simultaneous don/ka collisions by prioritizing don
+        quantized_ka = np.array([k for k in quantized_ka if not any(abs(k - d) < 1e-4 for d in quantized_don)], dtype=np.float64)
+
+        # Re-export to multi-formats
+        class MockSong:
+            def __init__(self, samplerate=22050):
+                self.samplerate = samplerate
+
+        mock_song = MockSong()
+        # Convert seconds to 512-hop frame indices
+        don_frames = np.rint(quantized_don * mock_song.samplerate / 512).astype(np.int64)
+        ka_frames = np.rint(quantized_ka * mock_song.samplerate / 512).astype(np.int64)
+
+        chart_exporters.export_osu(
+            str(INFERENCE_DIR / "inferred_notes.osu"),
+            mock_song, don_frames, ka_frames,
+            title="ODCNN Quantized Beatmap", bpm=bpm
+        )
+        chart_exporters.export_sm(
+            str(INFERENCE_DIR / "inferred_notes.sm"),
+            mock_song, don_frames, ka_frames,
+            title="ODCNN Quantized Dance Track", bpm=bpm
+        )
+        chart_exporters.export_beat_saber(
+            str(INFERENCE_DIR / "inferred_notes.dat"),
+            mock_song, don_frames, ka_frames, bpm=bpm
+        )
+
+        # Re-write .tja chart with quantized measures
+        # Compute measure structure based on bpm and quantized timestamps
+        total_duration = max(
+            float(quantized_don[-1]) if len(quantized_don) else 0.0,
+            float(quantized_ka[-1]) if len(quantized_ka) else 0.0
+        ) + 2.0
+        new_measure_dur = 4.0 * (60.0 / bpm)
+        num_measures = int(np.ceil(total_duration / new_measure_dur))
+
+        tja_lines = [
+            "TITLE: ODCNN Quantized Track",
+            "SUBTITLE: Quantized Grid",
+            f"BPM: {bpm:.2f}",
+            "WAVE: xxx.ogg",
+            f"OFFSET: {offset:.3f}",
+            "#START"
+        ]
+
+        don_set = set(np.round(quantized_don, 4))
+        ka_set = set(np.round(quantized_ka, 4))
+
+        for m_idx in range(num_measures):
+            m_start = m_idx * new_measure_dur + offset
+            measure_chars = []
+            for slot in range(division):
+                t_slot = round(m_start + slot * (new_measure_dur / division), 4)
+                if t_slot in don_set:
+                    measure_chars.append("1")
+                elif t_slot in ka_set:
+                    measure_chars.append("2")
+                else:
+                    measure_chars.append("0")
+            tja_lines.append("".join(measure_chars) + ",")
+
+        tja_lines.append("#END")
+        with open(tja_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(tja_lines) + "\n")
+
+        log_event(f"Chart quantized successfully @ {bpm:.1f} BPM, division 1/{division}, {len(quantized_don)} Don, {len(quantized_ka)} Ka.")
+        return JSONResponse({
+            "status": "success",
+            "bpm": bpm,
+            "division": division,
+            "offset": offset,
+            "don_count": len(quantized_don),
+            "ka_count": len(quantized_ka)
+        })
+    except Exception as e:
+        log_event(f"Quantization error: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
@@ -1231,6 +1364,81 @@ def index_page():
         </form>
       </div>
 
+
+      <!-- Section: BPM Tap Tempo & Beat Grid Snapping -->
+      <div class="card col-12" id="bpmQuantizeCard">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⏱️ BPM Tap Tempo & Beat Grid Quantizer</span>
+            <span class="tooltip-icon" title="Tap along to the music to detect BPM or set a manual tempo, then snap detected onsets to standard rhythmic subdivisions (quarter, eighth, sixteenth notes).">?</span>
+          </div>
+          <span class="status-pill pill-ready" id="bpmStatusBadge">Grid Ready</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: start;">
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">1. Tap Tempo Estimator</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Tap rhythmically on the button below (or press Spacebar when active) to calculate live BPM.
+            </p>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button type="button" class="btn btn-secondary" id="btnTapTempo" onclick="handleTapTempo()" style="flex: 1; font-weight: 700; padding: 10px;">
+                🥁 TAP TEMPO
+              </button>
+              <button type="button" class="btn-quit" onclick="resetTapTempo()" title="Reset tap tempo history">
+                Reset
+              </button>
+            </div>
+            <div style="margin-top: 10px; display: flex; align-items: baseline; gap: 8px;">
+              <span style="font-size: 1.8rem; font-weight: 800; color: var(--warning);" id="displayBpm">120.0</span>
+              <span style="font-size: 0.9rem; color: var(--text-muted);">BPM</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;" id="tapCountLabel">0 taps</span>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">2. Beat Grid Settings</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Configure tempo, rhythmic division per measure, and start offset.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group" style="margin-bottom: 8px;">
+                <label>Target BPM</label>
+                <input type="number" step="0.1" class="form-control" id="gridBpmInput" value="120.0">
+              </div>
+              <div class="form-group" style="margin-bottom: 8px;">
+                <label>Subdivision</label>
+                <select id="gridDivisionSelect">
+                  <option value="4">1/4 Measure (Quarter Notes)</option>
+                  <option value="8">1/8 Measure (Eighth Notes)</option>
+                  <option value="12">1/12 Measure (Triplets)</option>
+                  <option value="16" selected>1/16 Measure (Sixteenths)</option>
+                  <option value="24">1/24 Measure (Sextuplets)</option>
+                  <option value="32">1/32 Measure (Thirty-seconds)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label>Offset (Seconds)</label>
+              <input type="number" step="0.01" class="form-control" id="gridOffsetInput" value="0.0">
+            </div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">3. Quantize & Re-Export</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Align raw neural timestamps to the rhythmic grid and update .tja, .osu, .sm, and .dat charts.
+            </p>
+            <button type="button" class="btn btn-primary" id="btnQuantizeChart" onclick="quantizeAndReexport()" style="width: 100%; margin-bottom: 8px;">
+              📐 Quantize Charts to Grid
+            </button>
+            <div id="quantizeResultBadge" style="font-size: 0.8rem; color: var(--text-muted);">
+              Charts aligned: Ready to snap.
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Section 5: Live Streaming & Custom Audio -->
       <div class="card col-12">
         <div class="card-header">
@@ -1830,6 +2038,79 @@ def index_page():
         });
       }
     });
+
+
+    // --- BPM Tap Tempo & Beat Grid Snapping Logic ---
+    let tapTimes = [];
+    function handleTapTempo() {
+      const now = performance.now() / 1000;
+      if (tapTimes.length > 0 && (now - tapTimes[tapTimes.length - 1] > 3.0)) {
+        tapTimes = [];
+      }
+      tapTimes.push(now);
+      if (tapTimes.length > 8) tapTimes.shift();
+
+      document.getElementById('tapCountLabel').innerText = `${tapTimes.length} tap${tapTimes.length > 1 ? 's' : ''}`;
+
+      if (tapTimes.length >= 2) {
+        let diffs = [];
+        for (let i = 1; i < tapTimes.length; i++) {
+          diffs.push(tapTimes[i] - tapTimes[i - 1]);
+        }
+        const avgInterval = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+        const calculatedBpm = (60.0 / avgInterval);
+        const roundedBpm = Math.round(calculatedBpm * 10) / 10;
+        document.getElementById('displayBpm').innerText = roundedBpm.toFixed(1);
+        document.getElementById('gridBpmInput').value = roundedBpm.toFixed(1);
+      }
+    }
+
+    function resetTapTempo() {
+      tapTimes = [];
+      document.getElementById('tapCountLabel').innerText = '0 taps';
+      document.getElementById('displayBpm').innerText = '120.0';
+      document.getElementById('gridBpmInput').value = '120.0';
+    }
+
+    async function quantizeAndReexport() {
+      const btn = document.getElementById('btnQuantizeChart');
+      const badge = document.getElementById('quantizeResultBadge');
+      const bpm = parseFloat(document.getElementById('gridBpmInput').value) || 120.0;
+      const division = parseInt(document.getElementById('gridDivisionSelect').value) || 16;
+      const offset = parseFloat(document.getElementById('gridOffsetInput').value) || 0.0;
+
+      btn.disabled = true;
+      btn.innerText = 'Snapping...';
+      badge.innerText = 'Quantizing chart onsets...';
+
+      try {
+        const formData = new FormData();
+        formData.append('bpm', bpm);
+        formData.append('division', division);
+        formData.append('offset', offset);
+
+        const res = await fetch('/api/chart/quantize', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          badge.innerHTML = `<span style="color: var(--success); font-weight: 600;">✓ Quantized: ${data.don_count} Don, ${data.ka_count} Ka @ ${data.bpm} BPM</span>`;
+          // Reload waveform and charts
+          if (typeof loadWaveform === 'function') {
+            loadWaveform();
+          }
+        } else {
+          badge.innerHTML = `<span style="color: var(--primary);">⚠️ ${data.error || 'Failed'}</span>`;
+        }
+      } catch (err) {
+        badge.innerHTML = `<span style="color: var(--primary);">⚠️ Network error</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '📐 Quantize Charts to Grid';
+      }
+    }
 
   </script>
 </body>

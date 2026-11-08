@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 def run():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        context = browser.new_context(viewport={"width": 1400, "height": 1800})
+        context = browser.new_context(viewport={"width": 1400, "height": 2200})
         page = context.new_page()
 
         errors = []
@@ -42,7 +42,6 @@ def run():
         # Click inside waveform container to test scrubber click handling
         box = waveform_container.bounding_box()
         assert box is not None
-        # Click at 40% across
         page.mouse.click(box["x"] + box["width"] * 0.4, box["y"] + box["height"] * 0.5)
         time.sleep(1)
 
@@ -66,6 +65,37 @@ def run():
         arch_select.select_option("crnn")
         assert arch_select.input_value() == "crnn"
         print("Successfully selected CRNN architecture in studio")
+
+        # Verify BPM Tap Tempo & Beat Grid Snapping Tool card
+        bpm_card = page.locator("#bpmQuantizeCard")
+        assert bpm_card.is_visible(), "BPM Quantize card should be visible"
+
+        # Test Tap Tempo button clicks
+        tap_btn = page.locator("#btnTapTempo")
+        assert tap_btn.is_visible(), "Tap tempo button should be visible"
+        tap_btn.click()
+        time.sleep(0.5)
+        tap_btn.click()
+        time.sleep(0.5)
+        tap_btn.click()
+        time.sleep(0.5)
+
+        taps_label = page.locator("#tapCountLabel").inner_text()
+        print(f"Tap count label: {taps_label}")
+        assert "3 taps" in taps_label
+
+        bpm_val = page.locator("#displayBpm").inner_text()
+        print(f"Calculated BPM: {bpm_val}")
+        assert float(bpm_val) > 0.0
+
+        # Test Quantize Charts button
+        quantize_btn = page.locator("#btnQuantizeChart")
+        assert quantize_btn.is_visible()
+        quantize_btn.click()
+        page.wait_for_selector("#quantizeResultBadge:has-text('Quantized')", timeout=10000)
+        badge_text = page.locator("#quantizeResultBadge").inner_text()
+        print(f"Quantize result: {badge_text}")
+        assert "Quantized:" in badge_text
 
         page.screenshot(path="/home/jules/verification/verification.png", full_page=True)
         print("Screenshot saved to /home/jules/verification/verification.png")

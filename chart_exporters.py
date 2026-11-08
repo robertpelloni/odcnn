@@ -237,3 +237,36 @@ def export_beat_saber(
         json.dump(beat_saber_data, f, indent=2)
 
     return filename
+
+def quantize_timestamps_to_grid(
+    timestamps_sec: np.ndarray,
+    bpm: float,
+    division: int = 16,
+    offset_sec: float = 0.0
+) -> np.ndarray:
+    """
+    Snaps an array of onset timestamps (in seconds) to the nearest musical grid subdivision.
+    Args:
+        timestamps_sec: Array of float timestamps in seconds.
+        bpm: Beats per minute (e.g. 120.0).
+        division: Grid division per 4/4 measure (4 = quarter notes, 8 = eighths, 16 = sixteenths).
+        offset_sec: Initial track offset in seconds before beat 0.
+    Returns:
+        np.ndarray: Quantized timestamps in seconds, sorted and deduplicated.
+    """
+    if len(timestamps_sec) == 0:
+        return np.array([], dtype=np.float64)
+
+    # 4 beats in a standard measure:
+    # sub_beat_duration = (4 beats * (60.0 / bpm)) / division
+    # For division=16, step = (240 / bpm) / 16 = 15 / bpm = 0.25 beat
+    step_duration = (4.0 * (60.0 / max(1.0, bpm))) / max(1, division)
+
+    # Shift by offset, calculate nearest grid index, and snap
+    shifted = timestamps_sec - offset_sec
+    grid_indices = np.rint(shifted / step_duration)
+    quantized = grid_indices * step_duration + offset_sec
+
+    # Keep timestamps >= 0
+    quantized = quantized[quantized >= 0.0]
+    return np.unique(np.round(quantized, 4))
