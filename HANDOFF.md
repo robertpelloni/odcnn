@@ -1,7 +1,15 @@
 # HANDOFF: Session Memory & Operational Status
 
-## Current System State (v2.3.0)
+## Current System State (v2.4.0)
 - **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
+- **Sustained Drumroll & Balloon Detection Engine (`roll_detector.py`):**
+  - Pure-Python / NumPy sustained sound detection engine using continuous RMS energy persistence and spectral flux variance suppression (`detect_sustained_rolls`).
+  - Classifies sustained sounds into Yellow Drumroll (TJA `5`), Big Drumroll (TJA `6`), Balloon Note (TJA `7`), and Roll End Marker (TJA `8`) according to mean spectral centroid and RMS energy.
+  - Implemented onset deduplication helper `merge_onsets_and_rolls()` which deduplicates discrete Don/Ka note onsets occurring inside sustained roll intervals to prevent note collision.
+  - Synthesizer integration in `synthesize.py` (`create_tja`) generating standard `5`..`8` note numbers into `.tja` measure blocks.
+  - Exporter integration in `chart_exporters.py` (`export_osu`) mapping sustained rolls to Mode 1 spinner hitObjects.
+  - FastAPI Studio endpoints: `POST /api/rolls/detect` and updated `/api/audio_waveform` returning detected roll intervals.
+  - Interactive Studio card: "🥁 Sustained Drumroll & Balloon Detector" (`#rollsCard`) with minimum duration and energy ratio threshold controls, "Detect Sustained Rolls" trigger button, real-time status badge (`#rollsStatusBadge`), and detected roll readout.
 - **Dynamic Multi-Stem Audio Separation Engine (`stem_separator.py`):**
   - Pure-Python zero-dependency Harmonic-Percussive Source Separation (HPSS) algorithm using 2D median filtering across STFT frames (`separate_hpss`).
   - Separates transient vertical percussive attacks (drums, kicks, snares, cymbals) from tonal horizontal harmonic content (synth, basslines, vocals) using soft spectral masking.
@@ -52,11 +60,12 @@
   - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
   - Custom audio track upload endpoint (`POST /api/upload_audio`).
   - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
-- **Automated Tests:** 25/25 unit tests passing via `python3 -m unittest discover tests`.
-- **Frontend Verification:** Playwright frontend interaction test verified Stems card, Tap Tempo, Beat Grid Quantizer, and MIDI download integration, confirmed via visual inspection of `/home/jules/verification/verification.png`.
+- **Automated Tests:** 26/26 unit tests passing via `python3 -m unittest discover tests`.
+- **Frontend Verification:** Playwright frontend interaction test verified Sustained Roll detector, Stems card, Tap Tempo, Beat Grid Quantizer, and MIDI download integration, confirmed via visual inspection of `/home/jules/verification/verification.png`.
 
 ## File Reference & Structure
 - `run.py`: Unified CLI entry point for all operations.
+- `roll_detector.py`: Sustained Drumroll and Balloon note onset detection engine with continuous RMS persistence and spectral flux variance suppression.
 - `stem_separator.py`: Pure-Python Harmonic-Percussive Source Separation (HPSS) and 3-band Butterworth spectral filter engine.
 - `model_crnn.py`: Hybrid CRNN + Multihead Rhythm Attention neural network architecture.
 - `model.py`: Original Schlüter & Böck CNN architecture for onset probabilities.
@@ -71,9 +80,9 @@
 - `tests/test_pipeline.py`: Comprehensive test suite (17 unit tests including waveform, spectrogram, WebSocket, quantization, and MIDI export tests).
 - `tests/test_cli.py`: CLI entry point test suite (2 unit tests).
 - `tests/verify_frontend_interactions.py`: Playwright frontend interaction test script.
-- `VERSION.md`: Sourced single version string (`2.3.0`).
+- `VERSION.md`: Sourced single version string (`2.4.0`).
 
 ## Next Suggested Architectural Work
 - Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.
 - WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
-- Sustained roll/balloon detection using harmonic spectral energy continuity.
+- Dynamic multi-track stem onset fusion combining percussive stem onsets with harmonic cues.

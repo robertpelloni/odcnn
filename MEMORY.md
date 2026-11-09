@@ -1,6 +1,10 @@
 # Codebase Architectural Memory & Observations
 
 ## Codebase Structure
+- `roll_detector.py`: Sustained Drumroll and Balloon note onset detection engine.
+  - `detect_sustained_rolls(audio, sr, min_duration_sec, hop_length, frame_length, energy_ratio_thresh, max_spectral_flux_thresh)`: Analyzes continuous RMS energy persistence and suppresses rapid transient onsets via spectral flux variance to detect sustained drumrolls and long held sounds.
+  - Classifies detected intervals into Yellow Drumroll (`5`), Big Roll (`6`), or Balloon (`7`) based on mean spectral centroid and RMS energy, terminating with Roll End Marker (`8`).
+  - `merge_onsets_and_rolls(onsets, rolls)`: Filters out discrete Don/Ka onsets that fall within sustained roll time spans to eliminate chart note collision.
 - `stem_separator.py`: Pure-Python zero-dependency Harmonic-Percussive Source Separation (HPSS) and 3-band sub-band Butterworth spectral filter engine.
   - `separate_hpss(audio, sr, n_fft, hop_length, kernel_harm, kernel_perc, power)`: Computes STFT magnitude spectrogram, applies 2D median filtering across horizontal (time) and vertical (frequency) directions to derive soft spectral masks ($M_H = \frac{H^\gamma}{H^\gamma + P^\gamma + \epsilon}$, $M_P = \frac{P^\gamma}{H^\gamma + P^\gamma + \epsilon}$), and reconstructs phase-accurate time-domain signals via ISTFT.
   - `separate_subbands(audio, sr, cutoff_low, cutoff_high, order)`: 3-band Butterworth filtering isolating Bass (< 250 Hz), Mid (250 Hz - 2.5 kHz), and Treble (> 2.5 kHz).
@@ -37,3 +41,4 @@
 3. Numba cannot compile arbitrary Python objects in nopython mode without strict jitclass definitions; standard Python iteration over the list of audio objects is faster and avoids compilation failure.
 4. PyTorch 2.x `torch.onnx.export` with recurrent networks (GRU) and multihead attention requires `dynamo=False` (legacy TorchScript) and explicit `dynamic_axes` to avoid batch dimension freezing.
 5. Standard MIDI Files (SMF) use big-endian integer headers (`>I`, `>H`) and variable-length quantity (VLQ) delta times (7 bits per byte, MSB set on all except the final byte).
+6. In Taiko no Tatsujin `.tja` specifications, `5` denotes standard yellow drumroll start, `6` denotes big drumroll start, `7` denotes balloon note start, and `8` marks the roll termination. Notes occurring between roll start and end must be suppressed to avoid rhythmic clutter.

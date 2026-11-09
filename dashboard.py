@@ -487,6 +487,48 @@ def download_stem(stem_type: str):
         return FileResponse(path, media_type="audio/wav", filename=f"stem_{stem_type}.wav")
     return JSONResponse({"error": f"Stem '{stem_type}' not found"}, status_code=404)
 
+@app.post("/api/rolls/detect")
+def detect_rolls_api(
+    min_duration: float = Form(0.35),
+    energy_ratio: float = Form(0.08),
+    audio_source: str = Form("auto")
+):
+    """
+    Detects continuous sustained rolls, drumrolls, and balloons from audio.
+    """
+    import soundfile as sf
+    import roll_detector
+
+    custom_p = DATA_DIR / "custom_audio.wav"
+    sample_p = DATA_DIR / "test" / "test_music.ogg"
+
+    if audio_source == "custom" and custom_p.exists() and custom_p.stat().st_size > 1000:
+        target_path = custom_p
+    elif audio_source == "sample" and sample_p.exists():
+        target_path = sample_p
+    elif custom_p.exists() and custom_p.stat().st_size > 1000:
+        target_path = custom_p
+    elif sample_p.exists():
+        target_path = sample_p
+    else:
+        return JSONResponse({"error": "No audio file available for roll detection"}, status_code=404)
+
+    try:
+        audio, sr = sf.read(str(target_path))
+        rolls = roll_detector.detect_sustained_rolls(
+            audio, sr=sr, min_roll_sec=min_duration, energy_ratio_thresh=energy_ratio
+        )
+        log_event(f"Detected {len(rolls)} sustained rolls/balloons in {target_path.name}")
+        return {
+            "status": "success",
+            "source": target_path.name,
+            "rolls_count": len(rolls),
+            "rolls": rolls
+        }
+    except Exception as e:
+        log_event(f"Error during roll detection: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 @app.get("/api/audio_waveform")
 def get_audio_waveform(source: str = "auto"):
     """
@@ -545,6 +587,14 @@ def get_audio_waveform(source: str = "auto"):
                                     })
                             current_time += measure_duration
 
+        # Also parse detected rolls if available
+        rolls = []
+        try:
+            import roll_detector
+            rolls = roll_detector.detect_sustained_rolls(y, sr=sr)
+        except Exception:
+            rolls = []
+
         return JSONResponse({
             "source": target_path.name,
             "duration": round(duration, 3),
@@ -552,7 +602,8 @@ def get_audio_waveform(source: str = "auto"):
             "points": len(pos_peaks),
             "pos": pos_peaks,
             "neg": neg_peaks,
-            "notes": notes
+            "notes": notes,
+            "rolls": rolls
         })
     except Exception as e:
         log_event(f"Error computing audio waveform: {e}")
@@ -1576,6 +1627,58 @@ def index_page():
         </div>
       </div>
 
+      <!-- Section: Sustained Drumroll & Balloon Detector -->
+      <div class="card col-12" id="rollsCard">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🥁 Sustained Drumroll & Balloon Detector</span>
+            <span class="tooltip-icon" title="Analyzes continuous short-term RMS energy persistence and spectral flux variance to detect sustained drumrolls ('5' Yellow Roll, '6' Big Roll) and balloons ('7') ending with marker '8'. Prunes discrete note clutter inside roll windows.">?</span>
+          </div>
+          <span class="status-pill pill-ready" id="rollsStatusBadge">Roll Detector Ready</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">1. Detection Parameters</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Configure sensitivity thresholds for detecting sustained continuous tone segments.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Min Duration (sec)</label>
+                <input type="number" id="rollMinDur" class="form-control" value="0.35" step="0.05" min="0.1" max="5.0">
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Energy Ratio Thresh</label>
+                <input type="number" id="rollEnergyRatio" class="form-control" value="0.08" step="0.01" min="0.01" max="0.5">
+              </div>
+            </div>
+            <div style="margin-bottom: 10px;">
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Audio Source</label>
+              <select id="rollSourceSelect" class="form-control">
+                <option value="auto">Auto (Uploaded if available, else Sample)</option>
+                <option value="custom">Custom Uploaded Track</option>
+                <option value="sample">Built-in Test Track</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-primary" id="btnDetectRolls" onclick="detectRollsAction()" style="width: 100%;">
+              🥁 Detect Sustained Rolls & Balloons
+            </button>
+            <div id="rollsResultMsg" style="font-size: 0.75rem; color: var(--accent-cyan); margin-top: 6px;"></div>
+          </div>
+
+          <div>
+            <h4 style="font-size: 0.95rem; margin-bottom: 8px;">2. Detected Sustained Intervals</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+              Continuous sections mapped to Taiko roll markers (5=Yellow, 6=Big, 7=Balloon, 8=End).
+            </p>
+            <div id="rollsListContainer" style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 10px; max-height: 140px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
+              <span style="color: var(--text-muted);">Click "Detect Sustained Rolls" to scan audio.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Section 5: Live Streaming & Custom Audio -->
       <div class="card col-12">
         <div class="card-header">
@@ -2283,6 +2386,62 @@ def index_page():
       } finally {
         btn.disabled = false;
         btn.innerText = '⚡ Extract Audio Stems';
+      }
+    }
+
+    async function detectRollsAction() {
+      const btn = document.getElementById('btnDetectRolls');
+      const msg = document.getElementById('rollsResultMsg');
+      const badge = document.getElementById('rollsStatusBadge');
+      const container = document.getElementById('rollsListContainer');
+
+      const minDur = document.getElementById('rollMinDur').value;
+      const energyRatio = document.getElementById('rollEnergyRatio').value;
+      const source = document.getElementById('rollSourceSelect').value;
+
+      btn.disabled = true;
+      btn.innerText = 'Scanning Sustained Tones...';
+      msg.textContent = 'Analyzing frame RMS persistence & flux...';
+      badge.textContent = 'Scanning...';
+      badge.className = 'status-pill pill-running';
+
+      try {
+        const formData = new FormData();
+        formData.append('min_duration', minDur);
+        formData.append('energy_ratio', energyRatio);
+        formData.append('audio_source', source);
+
+        const res = await fetch('/api/rolls/detect', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          badge.textContent = `${data.rolls_count} Rolls Found`;
+          badge.className = 'status-pill pill-ready';
+          msg.textContent = `Scanned ${data.source}: found ${data.rolls_count} sustained regions.`;
+
+          if (data.rolls && data.rolls.length > 0) {
+            container.innerHTML = data.rolls.map(r => `
+              <div style="margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                <span><b style="color: var(--accent-yellow);">${r.name} (${r.type})</b>: ${r.start_sec.toFixed(2)}s - ${r.end_sec.toFixed(2)}s</span>
+                <span style="color: var(--text-muted);">${r.duration_sec.toFixed(2)}s duration</span>
+              </div>
+            `).join('');
+          } else {
+            container.innerHTML = '<span style="color: var(--text-muted);">No sustained rolls above threshold.</span>';
+          }
+        } else {
+          msg.textContent = 'Failed: ' + (data.error || 'Detection failed');
+          badge.textContent = 'Error';
+          badge.className = 'status-pill pill-idle';
+        }
+      } catch (err) {
+        msg.textContent = 'Network error detecting rolls';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🥁 Detect Sustained Rolls & Balloons';
       }
     }
 

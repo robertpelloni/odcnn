@@ -335,5 +335,50 @@ class TestODCNNPipeline(unittest.TestCase):
         res_inv = client.get("/api/download/stem/invalid_stem")
         self.assertEqual(res_inv.status_code, 400)
 
+    def test_roll_detection_and_api(self):
+        """Test sustained drumroll & balloon detection and dashboard REST endpoint."""
+        import roll_detector
+        from fastapi.testclient import TestClient
+        import dashboard
+
+        # 1. Test mathematical roll detection on synthetic sustained tone
+        sr = 44100
+        t = np.linspace(0, 1.5, int(1.5 * sr), endpoint=False)
+        # Background silence
+        signal = np.zeros_like(t, dtype=np.float32)
+        # Sustained drumroll tone between 0.3s and 1.1s (0.8s continuous duration)
+        start_idx = int(0.3 * sr)
+        end_idx = int(1.1 * sr)
+        signal[start_idx:end_idx] = 0.5 * np.sin(2 * np.pi * 300 * t[:end_idx - start_idx])
+
+        detected_rolls = roll_detector.detect_sustained_rolls(
+            signal, sr=sr, min_roll_sec=0.4, energy_ratio_thresh=0.25
+        )
+        self.assertGreater(len(detected_rolls), 0)
+        roll = detected_rolls[0]
+        self.assertAlmostEqual(roll["start_sec"], 0.3, delta=0.1)
+        self.assertAlmostEqual(roll["end_sec"], 1.1, delta=0.1)
+        self.assertIn(roll["type"], [5, 6, 7])
+
+        # 2. Test onset deduplication inside rolls
+        onsets_don = np.array([0.1, 0.45, 1.25])
+        onsets_ka = np.array([0.7, 1.35])
+        merged_don, merged_ka = roll_detector.merge_onsets_and_rolls(onsets_don, onsets_ka, detected_rolls)
+        # 0.45 and 0.7 fall inside [0.3, 1.1] so they must be removed
+        self.assertIn(0.1, merged_don)
+        self.assertIn(1.25, merged_don)
+        self.assertNotIn(0.45, merged_don)
+        self.assertNotIn(0.7, merged_ka)
+        self.assertIn(1.35, merged_ka)
+
+        # 3. Test dashboard API endpoint
+        client = TestClient(dashboard.app)
+        res = client.post("/api/rolls/detect", data={"min_duration": "0.3", "energy_ratio": "0.2"})
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("rolls_count", data)
+        self.assertIn("rolls", data)
+
 if __name__ == "__main__":
     unittest.main()

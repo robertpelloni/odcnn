@@ -19,24 +19,35 @@ def export_osu(
     ka_timestamp: np.ndarray,
     title: str = "ODCNN Inferred Track",
     artist: str = "ODCNN AI",
-    bpm: float = 120.0
+    bpm: float = 120.0,
+    rolls: Optional[List[Dict[str, Any]]] = None
 ) -> str:
     """
     Exports detected onsets to osu! Taiko format (.osu Mode: 1).
     Don = Normal hitsound (0)
     Ka = Whistle/Clap hitsound (2 / 8)
+    Rolls = Spinner hitObject (type 12) with start and end timestamps
     """
-    beat_length = 60000.0 / bpm
+    if rolls is None:
+        rolls = []
 
-    don_ms = np.rint(don_timestamp * 512 / song.samplerate * 1000).astype(np.int64)
-    ka_ms = np.rint(ka_timestamp * 512 / song.samplerate * 1000).astype(np.int64)
+    beat_length = 60000.0 / bpm
+    sr = getattr(song, "samplerate", 44100)
+
+    don_ms = np.rint(don_timestamp * 512 / sr * 1000).astype(np.int64)
+    ka_ms = np.rint(ka_timestamp * 512 / sr * 1000).astype(np.int64)
 
     # Combine notes with type (don=0, ka=2)
+    # Format: (time_ms, hit_type, hitsound, end_ms)
     notes = []
     for t in don_ms:
-        notes.append((t, 0))  # Don hitsound
+        notes.append((t, 1, 0, 0))  # circle, Don hitsound
     for t in ka_ms:
-        notes.append((t, 2))  # Ka hitsound (whistle)
+        notes.append((t, 1, 2, 0))  # circle, Ka hitsound (whistle)
+    for r in rolls:
+        s_ms = int(round(r["start_sec"] * 1000))
+        e_ms = int(round(r["end_sec"] * 1000))
+        notes.append((s_ms, 12, 0, e_ms))  # spinner (drumroll)
 
     notes.sort(key=lambda x: x[0])
 
@@ -78,10 +89,15 @@ def export_osu(
         "[HitObjects]"
     ]
 
-    for time_ms, hitsound in notes:
+    for time_ms, obj_type, hitsound, end_ms in notes:
         # Format: x,y,time,type,hitSound,objectParams,hitSample
-        # Taiko standard coordinates: x=256, y=192, type=1 (circle)
-        lines.append(f"256,192,{time_ms},1,{hitsound},0:0:0:0:")
+        # Taiko standard coordinates: x=256, y=192
+        if obj_type == 12:
+            # Spinner (drumroll in Taiko)
+            lines.append(f"256,192,{time_ms},12,{hitsound},{end_ms}:0:0:0:")
+        else:
+            # Circle
+            lines.append(f"256,192,{time_ms},1,{hitsound},0:0:0:0:")
 
     content = "\n".join(lines) + "\n"
     Path(filename).parent.mkdir(parents=True, exist_ok=True)

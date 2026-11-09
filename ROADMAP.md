@@ -11,7 +11,7 @@
 ### Milestone 2: Multi-Model Architecture & General Rhythm Game Support (v1.2.0 - Completed)
 - [x] Support custom game chart formats: StepMania (.sm), osu! (.osu) Mode 1 Taiko.
 - [x] Support VR game chart formats: Beat Saber (.dat v2 schema).
-- [ ] Add roll/slider (dendera/balloon) detection using sustained spectral energy analysis.
+- [x] Add roll/slider (dendera/balloon) detection using sustained spectral energy analysis (Completed v2.4.0).
 
 ### Milestone 3: Portable Runtime & Microcontroller Integration (v1.3.0 - Completed)
 - [x] Export PyTorch CNN to standardized ONNX graphs (`export_onnx.py`).
@@ -72,7 +72,16 @@
 - [x] Interactive Studio UI card with audio source selection, status badge, independent HTML5 audio preview players, and download buttons.
 - [x] Automated unit test suite and Playwright browser verification.
 
-### Milestone 13: Embedded Integration & Edge Audio Inference (Next)
+### Milestone 13: Sustained Roll & Balloon Onset Detection Engine (v2.4.0 - Completed)
+- [x] Continuous RMS energy persistence and spectral flux variance suppression engine (`roll_detector.py`).
+- [x] Classification into Yellow Drumroll (TJA 5), Big Roll (TJA 6), Balloon (TJA 7), and Roll End Marker (TJA 8).
+- [x] Onset deduplication inside sustained roll intervals (`merge_onsets_and_rolls()`).
+- [x] Synthesizer integration into `.tja` measure blocks and osu! Mode 1 spinner hitObjects.
+- [x] Studio REST API (`/api/rolls/detect`) and waveform overlay integration (`/api/audio_waveform`).
+- [x] Unified Studio UI card with threshold controls, execution button, real-time status badge, and detected rolls table.
+- [x] Automated unit test suite (26/26 passing) and Playwright browser verification.
+
+### Milestone 14: Embedded Integration & Edge Audio Inference (Next)
 - [ ] Low-latency C++/Rust ONNX Runtime standalone runner for embedded rhythm hardware.
 - [ ] WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
-- [ ] Sustained roll/balloon detection using harmonic spectral energy continuity.
+- [ ] Dynamic multi-track stem onset fusion combining percussive stem onsets with harmonic cues.

@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## [2.4.0] - 2025-11-08
+### Added
+- **Sustained Drumroll & Balloon Detection Engine (`roll_detector.py`):**
+  - Designed and implemented continuous RMS persistence and spectral flux variance suppression algorithm to accurately detect sustained rolls and held notes in musical audio.
+  - Automatically classifies sustained sounds based on mean spectral centroid and RMS energy into:
+    - **Yellow Drumroll (TJA `5`):** Standard sustained drumroll for standard energy levels.
+    - **Big Drumroll (TJA `6`):** High-amplitude sustained roll for prominent drumrolls.
+    - **Balloon Note (TJA `7`):** High-flux bursting rolls with designated pop thresholds.
+    - **Roll End Marker (TJA `8`):** Exact temporal termination marker for chart parsers.
+  - Implemented onset deduplication helper `merge_onsets_and_rolls()` which deduplicates discrete Don/Ka note onsets occurring inside sustained roll intervals to prevent note overlapping in rhythm charts.
+- **Synthesizer & Multi-Format Exporter Integration:**
+  - Integrated `detect_sustained_rolls()` and `merge_onsets_and_rolls()` into `synthesize.py` (`create_tja`), generating accurate `5`, `6`, `7`, and `8` markers in `.tja` measure blocks.
+  - Updated `chart_exporters.py` to map detected sustained rolls to Mode 1 spinner hitObjects in osu! Taiko (`.osu`) with millisecond start/end timestamps.
+- **FastAPI Studio REST API Integration:**
+  - Added `POST /api/rolls/detect` endpoint accepting min duration (seconds) and energy ratio thresholds, returning detected rolls with note codes and formatted millisecond timestamps.
+  - Updated `GET /api/audio_waveform` to parse and return detected sustained roll intervals (`rolls`) alongside regular notes and waveform envelopes.
+- **Unified Studio Dashboard UI Controls:**
+  - Added interactive card: "🥁 Sustained Drumroll & Balloon Detector" (`#rollsCard`) to the single-page studio layout.
+  - Configurable minimum roll duration (`#rollMinDuration`) and energy ratio (`#rollEnergyRatio`) controls.
+  - "Detect Sustained Rolls" action button (`#btnDetectRolls`) and dynamic real-time status badge (`#rollsStatusBadge`).
+  - Interactive table displaying detected rolls with note type badges (Yellow, Big, Balloon) and start/end time offsets.
+- **Automated Test Suite & Frontend Playwright Verification:**
+  - Added unit test `test_roll_detection_and_api` in `tests/test_pipeline.py` verifying synthetic sustained tone detection, onset deduplication, and FastAPI REST endpoint responses (expanding test suite to 26 passing tests).
+  - Updated automated Playwright test `tests/verify_frontend_interactions.py` with sustained roll detection button interaction and status verification, confirmed visually via snapshot inspection.
+
 ## [2.3.0] - 2025-11-08
 ### Added
 - **Dynamic Multi-Stem Audio Separation Engine (`stem_separator.py`):**

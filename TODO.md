@@ -26,5 +26,9 @@
 - [x] Add BPM tap tempo & beat grid snapping tool.
 - [x] Add interactive Standard MIDI File (SMF Type 0) chart export (.mid).
 - [x] Add dynamic multi-channel audio stems separation prior to onset feature extraction (`stem_separator.py`).
+- [x] Implement sustained drumroll and balloon note detection engine (`roll_detector.py`).
+- [x] Deduplicate discrete onsets falling inside sustained roll intervals (`merge_onsets_and_rolls`).
+- [x] Synthesize sustained rolls into `.tja` measure blocks (`5`..`8`) and osu! Mode 1 spinner hitObjects.
+- [x] Integrate sustained roll detector controls, API endpoints, and real-time status badges into Studio UI.
 - [ ] Add standalone low-latency C++/Rust ONNX runner for hardware microcontrollers.
 - [ ] Add WebAssembly / WebAudio client-side onset inference directly in browser.
