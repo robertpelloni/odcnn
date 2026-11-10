@@ -1,0 +1,88 @@
+# HANDOFF: Session Memory & Operational Status
+
+## Current System State (v2.4.0)
+- **ODCNN Engine Status:** Fully functional, modernized for Python 3.12, PyTorch 2.x, Librosa 0.10.x, SciPy 1.14+, and ONNX Runtime.
+- **Sustained Drumroll & Balloon Detection Engine (`roll_detector.py`):**
+  - Pure-Python / NumPy sustained sound detection engine using continuous RMS energy persistence and spectral flux variance suppression (`detect_sustained_rolls`).
+  - Classifies sustained sounds into Yellow Drumroll (TJA `5`), Big Drumroll (TJA `6`), Balloon Note (TJA `7`), and Roll End Marker (TJA `8`) according to mean spectral centroid and RMS energy.
+  - Implemented onset deduplication helper `merge_onsets_and_rolls()` which deduplicates discrete Don/Ka note onsets occurring inside sustained roll intervals to prevent note collision.
+  - Synthesizer integration in `synthesize.py` (`create_tja`) generating standard `5`..`8` note numbers into `.tja` measure blocks.
+  - Exporter integration in `chart_exporters.py` (`export_osu`) mapping sustained rolls to Mode 1 spinner hitObjects.
+  - FastAPI Studio endpoints: `POST /api/rolls/detect` and updated `/api/audio_waveform` returning detected roll intervals.
+  - Interactive Studio card: "🥁 Sustained Drumroll & Balloon Detector" (`#rollsCard`) with minimum duration and energy ratio threshold controls, "Detect Sustained Rolls" trigger button, real-time status badge (`#rollsStatusBadge`), and detected roll readout.
+- **Dynamic Multi-Stem Audio Separation Engine (`stem_separator.py`):**
+  - Pure-Python zero-dependency Harmonic-Percussive Source Separation (HPSS) algorithm using 2D median filtering across STFT frames (`separate_hpss`).
+  - Separates transient vertical percussive attacks (drums, kicks, snares, cymbals) from tonal horizontal harmonic content (synth, basslines, vocals) using soft spectral masking.
+  - 3-band sub-band Butterworth spectral filter separation (`separate_subbands`) isolating Bass (< 250 Hz), Mid (250 Hz - 2.5 kHz), and Treble (> 2.5 kHz).
+  - High-level pipeline `extract_and_save_stems()` saving 16-bit WAV files (`stem_percussive.wav`, `stem_harmonic.wav`, `stem_bass.wav`, `stem_treble.wav`) to `data/stems/`.
+  - FastAPI Studio endpoints: `POST /api/stems/extract`, `GET /api/stems/status`, and `GET /api/download/stem/{type}`.
+  - Interactive Studio card: "🎛️ Dynamic Audio Stems & Harmonic/Percussive Separator" (`#stemsCard`) with track source selector, extraction trigger, real-time status badge, and independent HTML5 audio preview players and download buttons for percussive and harmonic stems.
+- **Standard MIDI File (SMF Type 0) Exporter (`chart_exporters.py` & `synthesize.py`):**
+  - Standalone, zero-dependency pure-Python binary SMF Type 0 exporter `export_midi()`.
+  - Maps Don to MIDI note 36 (General MIDI Kick / Bass Drum 1) and Ka to MIDI note 38 (Acoustic Snare) on percussion channel 10 (`0x09`).
+  - Generates tempo meta events, track title, and paired note-on/note-off events with variable-length delta times.
+  - Automatically exported during synthesis (`inferred_notes.mid`) and beat grid re-quantization.
+  - Studio UI includes "Download .MID" button linked to `/api/download/midi`.
+- **BPM Tap Tempo & Beat Grid Snapping Engine (`chart_exporters.py` & `dashboard.py`):**
+  - Live interactive Tap Tempo calculator with running inter-tap interval averaging and automatic pause reset (>2.5s).
+  - Mathematical grid quantizer `quantize_timestamps_to_grid()` snapping timestamps to arbitrary subdivisions (1/4 quarter notes up to 1/32 notes) with duplicate prevention.
+  - `/api/chart/quantize` endpoint recalculating `.tja` measure structures and regenerating `.osu`, `.sm`, `.dat`, and `.mid` rhythm charts.
+  - Interactive studio card: "⏱️ BPM Tap Tempo & Beat Grid Quantizer" with live BPM badge, subdivision selector, offset adjustment, and one-click execution.
+- **CRNN + Multihead Rhythm Attention Architecture (`model_crnn.py`):**
+  - Modern hybrid architecture `CRNNOnsetMaxNet` coupling Conv2D feature extractors with frequency pooling, BiGRU sequence modeling, and temporal Multihead Attention (`RhythmAttention`).
+  - Pre-generated default weights for Don/Ka CRNN checkpoints (`models/don_crnn.pth`, `models/ka_crnn.pth`).
+  - Integrated across CLI (`run.py infer --arch crnn`), forward inference (`infer.py`), FastAPI Studio (`dashboard.py` `#inferArch` dropdown), and ONNX export (`export_onnx.py --arch crnn`).
+- **Mel-Frequency Spectrogram Heatmap Visualizer:**
+  - Spectrogram data endpoint `/api/spectrogram_data` computing 48-mel frequency bins across downsampled STFT frames normalized [0.0, 1.0].
+  - Interactive HTML5 Canvas rendering of spectral energy using Magma/Inferno color ramp (purple -> magenta -> orange -> yellow -> white) with frequency axis markings.
+  - Synchronized two-way scrubbing linking spectrogram, waveform, and audio playback.
+- **Interactive Audio Waveform Visualizer & Rhythm Onset Scrubber:**
+  - Fast downsampled dual min/max envelope generator endpoint `/api/audio_waveform` returning 1000 point waveform profile and parsed rhythm note timestamps.
+  - Interactive HTML5 Canvas visualizer rendering waveforms with overlaid color-coded hit markers (Red Don / Blue Ka) and synchronized timeline scrubber cursor.
+  - Click-to-scrub seeks the studio `<audio>` element with real-time timecode updates.
+- **Live WebSocket Microphone Streaming (`/ws/stream`):**
+  - FastAPI WebSocket endpoint accepts Float32 binary PCM audio chunks directly from user microphones.
+  - Streaming onset detector evaluates RMS energy jumps and classifies hits as Don or Ka based on spectral centroid frequencies.
+  - Studio UI includes live microphone start/stop toggle, connection indicators, and animated visual hit badges (Red Don / Blue Ka).
+- **Unified CLI Runner (`run.py`):** Consolidated command line interface supporting `studio`, `train`, `infer`, `synthesize`, `export-onnx`, and `stream-sim`.
+- **Unified Web Studio:** Running on `http://0.0.0.0:8000` via FastAPI (`dashboard.py`).
+- **Desktop System Tray Controller:** Implemented in `tray_app.py` for headless background server management.
+- **Rhythm Game & DAW Exporters (`chart_exporters.py`):**
+  - Taiko no Tatsujin (`.tja`)
+  - osu! Taiko Mode 1 (`.osu`)
+  - StepMania Dance Single (`.sm`)
+  - Beat Saber (`.dat` v2 schema)
+  - Standard MIDI File Type 0 (`.mid`)
+- **ONNX Acceleration Engine (`export_onnx.py`):**
+  - Graph exporter for CNN and CRNN models (`models/don_model.onnx`, `models/ka_model.onnx`, `models/don_crnn.onnx`, `models/ka_crnn.onnx`).
+  - ONNX Runtime execution engine integrated with UI engine selection toggle.
+- **Live Audio Streaming & Upload Pipeline (`audio_stream.py`):**
+  - `AudioChunkStreamer` and `StreamingOnsetDetector` circular buffer onset detector.
+  - Custom audio track upload endpoint (`POST /api/upload_audio`).
+  - Real-time sliding buffer onset simulation endpoint (`POST /api/action/simulate_stream`).
+- **Automated Tests:** 26/26 unit tests passing via `python3 -m unittest discover tests`.
+- **Frontend Verification:** Playwright frontend interaction test verified Sustained Roll detector, Stems card, Tap Tempo, Beat Grid Quantizer, and MIDI download integration, confirmed via visual inspection of `/home/jules/verification/verification.png`.
+
+## File Reference & Structure
+- `run.py`: Unified CLI entry point for all operations.
+- `roll_detector.py`: Sustained Drumroll and Balloon note onset detection engine with continuous RMS persistence and spectral flux variance suppression.
+- `stem_separator.py`: Pure-Python Harmonic-Percussive Source Separation (HPSS) and 3-band Butterworth spectral filter engine.
+- `model_crnn.py`: Hybrid CRNN + Multihead Rhythm Attention neural network architecture.
+- `model.py`: Original Schlüter & Böck CNN architecture for onset probabilities.
+- `synthesize.py`: Signal smoothing, multi-parameter peak picking, Taiko audio synthesis, and multi-format chart generation.
+- `music_processor.py`: STFT and Mel-frequency filterbank feature extraction.
+- `chart_exporters.py`: Chart writers for osu!, StepMania, Beat Saber, Standard MIDI Files, and beat grid quantizer.
+- `export_onnx.py`: ONNX exporter and ONNX Runtime inference class.
+- `audio_stream.py`: Sliding buffer audio stream generator and real-time ring buffer onset detector.
+- `dashboard.py`: Unified FastAPI single-page dashboard with real-time logging, metrics, actions, dual engine support, audio upload/streaming simulator, WebSocket live mic streaming, interactive waveform scrubber, Mel spectrogram heatmap, model architecture selection, BPM tap tempo / beat grid quantizer, and multi-format chart downloads.
+- `tray_app.py`: System tray manager with desktop process management and shutdown.
+- `tests/test_crnn.py`: Unit test suite for CRNN architecture, forward pass, gradients, and ONNX Runtime batch inference (5 tests).
+- `tests/test_pipeline.py`: Comprehensive test suite (17 unit tests including waveform, spectrogram, WebSocket, quantization, and MIDI export tests).
+- `tests/test_cli.py`: CLI entry point test suite (2 unit tests).
+- `tests/verify_frontend_interactions.py`: Playwright frontend interaction test script.
+- `VERSION.md`: Sourced single version string (`2.4.0`).
+
+## Next Suggested Architectural Work
+- Standalone C++ runner utilizing exported ONNX models for embedded arcade rhythm hardware.
+- WebAssembly / WebAudio client-side onset inference in browser without backend roundtrip.
+- Dynamic multi-track stem onset fusion combining percussive stem onsets with harmonic cues.

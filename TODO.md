@@ -1,0 +1,34 @@
+# Granular Short-Term Tasks & Immediate Fixes
+
+- [x] Fix `TypeError: peak_pick() takes 1 positional argument but 7 were given` in `synthesize.py`.
+- [x] Fix `numba.core.errors.TypingError` on custom Audio objects in `music_processor.py`.
+- [x] Fix `AttributeError: module 'scipy.signal' has no attribute 'blackmanharris'` in `music_processor.py`.
+- [x] Replace deprecated `F.sigmoid` with `torch.sigmoid` in `model.py`.
+- [x] Modernize `requirement.txt` with working pinned dependencies.
+- [x] Implement unified Dashboard application `dashboard.py` with FastAPI and responsive frontend.
+- [x] Implement system tray controller `tray_app.py`.
+- [x] Add automated test suite `tests/test_pipeline.py`.
+- [x] Complete Playwright frontend testing and UI screenshot verification.
+- [x] Implement multi-format rhythm game chart exporters for osu! and StepMania (`chart_exporters.py`).
+- [x] Add dashboard download endpoints and buttons for `.osu` and `.sm` files.
+- [x] Implement Beat Saber exporter (`export_beat_saber`) in `chart_exporters.py` and UI download.
+- [x] Implement ONNX export and ONNX Runtime inference engine (`export_onnx.py`).
+- [x] Integrate dual inference engines (PyTorch & ONNX Runtime) in `dashboard.py`.
+- [x] Implement real-time sliding buffer streaming simulator (`audio_stream.py`).
+- [x] Implement custom user audio track upload (`POST /api/upload_audio`).
+- [x] Integrate live stream simulation & audio upload interactive UI card into Studio dashboard.
+- [x] Add real-time microphone/line-in PortAudio / WebAudio stream input for live onset inference via `/ws/stream`.
+- [x] Add interactive waveform canvas scrubbing with visual onset markers.
+- [x] Add spectrogram frequency heatmap canvas visualizer.
+- [x] Implement CRNN + Multihead Rhythm Attention architecture (`model_crnn.py`).
+- [x] Add architecture selection (`cnn` vs. `crnn`) across pipeline (`infer.py`, `dashboard.py`, `run.py`, `export_onnx.py`).
+- [x] Export CRNN to ONNX format and verify ONNX Runtime inference.
+- [x] Add BPM tap tempo & beat grid snapping tool.
+- [x] Add interactive Standard MIDI File (SMF Type 0) chart export (.mid).
+- [x] Add dynamic multi-channel audio stems separation prior to onset feature extraction (`stem_separator.py`).
+- [x] Implement sustained drumroll and balloon note detection engine (`roll_detector.py`).
+- [x] Deduplicate discrete onsets falling inside sustained roll intervals (`merge_onsets_and_rolls`).
+- [x] Synthesize sustained rolls into `.tja` measure blocks (`5`..`8`) and osu! Mode 1 spinner hitObjects.
+- [x] Integrate sustained roll detector controls, API endpoints, and real-time status badges into Studio UI.
+- [ ] Add standalone low-latency C++/Rust ONNX runner for hardware microcontrollers.
+- [ ] Add WebAssembly / WebAudio client-side onset inference directly in browser.

@@ -33,3 +33,4 @@ plot.py
 
 # ignore
 # .gitattributes
+*.log
